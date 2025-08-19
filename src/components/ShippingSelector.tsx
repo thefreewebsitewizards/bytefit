@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getCheckoutRates, formatShippingAmount, formatDeliveryEstimate, ShippingRate } from '../services/clientShipping';
-import { STRIPE_CONFIG } from '../config/stripe';
 
 interface ShippingSelectorProps {
   orderTotal: number;
@@ -11,7 +10,7 @@ interface ShippingSelectorProps {
 
 const ShippingSelector: React.FC<ShippingSelectorProps> = ({
   orderTotal,
-  connectedAccountId = STRIPE_CONFIG.connectedAccountId,
+  connectedAccountId,
   onShippingSelect,
   selectedShippingRate
 }) => {

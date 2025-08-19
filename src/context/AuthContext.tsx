@@ -29,8 +29,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (user) {
         // Get user profile from Firestore
         const profile = await getUserProfile(user.uid);
+        console.log('🔍 User profile loaded:', profile);
+        console.log('🔍 Admin check - role:', profile?.role, 'userType:', profile?.userType);
+        const adminStatus = profile?.role === 'admin' || profile?.userType === 'admin' || false;
+        console.log('🔍 Setting isAdmin to:', adminStatus);
         setUserProfile(profile);
-        setIsAdmin(profile?.role === 'admin' || profile?.userType === 'admin' || false);
+        setIsAdmin(adminStatus);
       } else {
         setUserProfile(null);
         setIsAdmin(false);

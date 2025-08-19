@@ -29,11 +29,13 @@ const Header: React.FC = () => {
   return (
     <>
       <header 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled ? 'bg-white shadow-lg' : 'bg-white shadow-md'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+          isScrolled ? 'bg-white/95 backdrop-blur-md shadow-2xl border-b border-gray-100' : 'bg-white/90 backdrop-blur-sm shadow-lg'
         }`}
         style={{
-          border: 'none'
+          border: 'none',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
         }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -41,18 +43,29 @@ const Header: React.FC = () => {
             {/* Business Name - Left */}
             <Link 
               to="/" 
-              className="flex items-center space-x-2 group transition-transform duration-300 hover:scale-105"
+              className="flex items-center space-x-2 group transition-all duration-500 hover:scale-105"
             >
               <span 
-                className="font-patrick-hand text-xl font-bold transition-colors duration-300 group-hover:text-purple-600"
-                style={{ color: '#2c3e50' }}
+                className="font-playfair text-3xl font-bold transition-all duration-500 group-hover:text-gray-700 relative"
+                style={{ 
+                  color: '#1a1a1a',
+                  letterSpacing: '0.05em',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text'
+                }}
               >
                 BYTEFIT
+                <div 
+                  className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gray-600 to-gray-800 transition-all duration-500 group-hover:w-full"
+                ></div>
               </span>
             </Link>
 
             {/* Navigation Links - Center */}
-            <nav className="hidden lg:flex items-center space-x-6">
+            <nav className="hidden lg:flex items-center space-x-8">
               {[
                 { to: '/', label: 'Home' },
                 { to: '/gallery', label: 'Shop' },
@@ -62,41 +75,52 @@ const Header: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="text-base font-medium transition-all duration-200 hover:text-purple-700 hover:bg-purple-50 px-3 py-2 rounded-full"
+                  className="relative text-base font-medium transition-all duration-300 hover:text-gray-900 px-4 py-2 rounded-lg group"
                   style={{ 
-                    color: '#6b7280',
-                    fontFamily: 'Helvetica, sans-serif'
+                    color: '#4a5568',
+                    fontFamily: 'Helvetica, sans-serif',
+                    letterSpacing: '0.025em'
                   }}
-
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
                 >
                   {item.label}
+                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-gray-600 to-gray-800 transition-all duration-300 group-hover:w-3/4 transform -translate-x-1/2"></div>
                 </Link>
               ))}
-
             </nav>
 
             {/* Right Section - Cart & Account */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               {/* Cart Icon */}
               <Link
                 to="/cart"
-                className="group relative p-2 rounded-full transition-all duration-300 hover:bg-gray-50"
+                className="group relative p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100"
                 style={{ color: '#2c3e50' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'scale(1.05)';
-                  e.currentTarget.style.color = '#6b7280';
+                  e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                  e.currentTarget.style.color = '#1a1a1a';
+                  e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
                   e.currentTarget.style.color = '#2c3e50';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <i className="fas fa-shopping-cart text-lg"></i>
                 {itemCount > 0 && (
                   <span 
-                    className="absolute -top-1 -right-1 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium"
+                    className="absolute -top-1 -right-1 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold animate-pulse"
                     style={{ 
-                      background: '#6b7280'
+                      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
                     }}
                   >
                     {itemCount}
@@ -109,9 +133,18 @@ const Header: React.FC = () => {
                 <div className="relative hidden lg:block">
                   <button
                     onClick={() => setIsAccountDropdownOpen(!isAccountDropdownOpen)}
-                    className="group flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 hover:scale-105"
+                    className="group flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 hover:scale-105"
                     style={{ 
-                      background: 'linear-gradient(135deg,rgb(7, 7, 7) 0%,rgb(32, 32, 32) 100%)'
+                      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
                     }}
                   >
                     <i className="fas fa-user text-white text-sm"></i>
@@ -125,87 +158,161 @@ const Header: React.FC = () => {
                         onClick={() => setIsAccountDropdownOpen(false)}
                       ></div>
                       <div 
-                        className="absolute right-0 mt-3 w-64 bg-white rounded-xl shadow-2xl border z-50 overflow-hidden animate-in slide-in-from-top-2 duration-200"
+                        className="absolute right-0 mt-3 w-72 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border z-50 overflow-hidden animate-in slide-in-from-top-2 duration-300"
                         style={{ 
-                          borderColor: '#e9ecef',
-                          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                          borderColor: 'rgba(26, 26, 26, 0.1)',
+                          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.05)',
+                          backdropFilter: 'blur(20px)',
+                          WebkitBackdropFilter: 'blur(20px)'
                         }}
                       >
                         {/* User Info Header */}
                         <div 
-                          className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b"
-                          style={{ borderBottomColor: '#e9ecef' }}
+                          className="px-6 py-5 border-b relative overflow-hidden"
+                          style={{ 
+                            borderBottomColor: 'rgba(26, 26, 26, 0.1)',
+                            background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.03) 0%, rgba(45, 45, 45, 0.05) 100%)'
+                          }}
                         >
-                          <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-4 relative z-10">
                             <div 
-                              className="w-10 h-10 rounded-full flex items-center justify-center"
-                              style={{ background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)' }}
+                              className="w-12 h-12 rounded-full flex items-center justify-center ring-2 ring-white/20 shadow-lg"
+                              style={{ 
+                                background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                                boxShadow: '0 8px 32px rgba(26, 26, 26, 0.3)'
+                              }}
                             >
-                              <i className="fas fa-user text-white"></i>
+                              <i className="fas fa-user text-white text-sm"></i>
                             </div>
                             <div>
-                              <p className="text-sm font-semibold" style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}>Welcome back!</p>
-                              <p className="text-xs truncate" style={{ color: '#7f8c8d', fontFamily: 'Helvetica, sans-serif' }}>{currentUser.email}</p>
+                              <p 
+                                className="text-sm font-semibold mb-1" 
+                                style={{ 
+                                  color: '#1a1a1a', 
+                                  fontFamily: 'Playfair Display, serif',
+                                  letterSpacing: '0.025em'
+                                }}
+                              >
+                                Welcome back!
+                              </p>
+                              <p 
+                                className="text-xs truncate opacity-75" 
+                                style={{ 
+                                  color: '#4a5568', 
+                                  fontFamily: 'Helvetica, sans-serif',
+                                  maxWidth: '180px'
+                                }}
+                              >
+                                {currentUser.email}
+                              </p>
                             </div>
                           </div>
+                          {/* Decorative gradient overlay */}
+                          <div 
+                            className="absolute top-0 right-0 w-20 h-full opacity-10"
+                            style={{
+                              background: 'linear-gradient(135deg, transparent 0%, #1a1a1a 100%)'
+                            }}
+                          ></div>
                         </div>
 
                         {/* Menu Items */}
-                        <div className="py-2">
+                        <div className="py-3">
+                          {(() => {
+                            console.log('🔍 Header - isAdmin:', isAdmin, 'currentUser:', currentUser?.email);
+                            return null;
+                          })()}
                           {isAdmin && (
                             <Link
                               to="/admin"
-                              className="flex items-center px-6 py-3 text-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                              style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
+                              className="group flex items-center px-6 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/80 relative overflow-hidden"
+                              style={{ 
+                                color: '#2c3e50', 
+                                fontFamily: 'Helvetica, sans-serif',
+                                fontWeight: '500'
+                              }}
                               onClick={() => setIsAccountDropdownOpen(false)}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#6b7280';
-                                e.currentTarget.style.paddingLeft = '1.75rem';
+                                e.currentTarget.style.color = '#1a1a1a';
+                                e.currentTarget.style.transform = 'translateX(4px)';
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.color = '#2c3e50';
-                                e.currentTarget.style.paddingLeft = '1.5rem';
+                                e.currentTarget.style.transform = 'translateX(0)';
                               }}
                             >
-                              <i className="fas fa-cog mr-3 text-gray-500"></i>
-                              Admin Dashboard
+                              <div 
+                                className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                                style={{
+                                  background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.1) 0%, rgba(45, 45, 45, 0.15) 100%)'
+                                }}
+                              >
+                                <i className="fas fa-cog text-gray-600 text-xs"></i>
+                              </div>
+                              <span className="relative z-10">Admin Dashboard</span>
+                              <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-gray-400 to-gray-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
                             </Link>
                           )}
                           <Link
                             to="/orders"
-                            className="flex items-center px-6 py-3 text-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100"
-                            style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
+                            className="group flex items-center px-6 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 relative overflow-hidden"
+                            style={{ 
+                              color: '#2c3e50', 
+                              fontFamily: 'Helvetica, sans-serif',
+                              fontWeight: '500'
+                            }}
                             onClick={() => setIsAccountDropdownOpen(false)}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#6b7280';
-                              e.currentTarget.style.paddingLeft = '1.75rem';
+                              e.currentTarget.style.color = '#1a1a1a';
+                              e.currentTarget.style.transform = 'translateX(4px)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.color = '#2c3e50';
-                              e.currentTarget.style.paddingLeft = '1.5rem';
+                              e.currentTarget.style.transform = 'translateX(0)';
                             }}
                           >
-                            <i className="fas fa-box mr-3 text-gray-500"></i>
-                            My Orders
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.15) 100%)'
+                              }}
+                            >
+                              <i className="fas fa-box text-blue-600 text-xs"></i>
+                            </div>
+                            <span className="relative z-10">My Orders</span>
+                            <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-400 to-indigo-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
                           </Link>
+                          
+                          {/* Divider */}
+                          <div className="mx-6 my-2 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                          
                           <button
                             onClick={handleLogout}
-                            className="w-full flex items-center px-6 py-3 text-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50"
-                            style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
+                            className="group w-full flex items-center px-6 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50/80 hover:to-pink-50/80 relative overflow-hidden"
+                            style={{ 
+                              color: '#2c3e50', 
+                              fontFamily: 'Helvetica, sans-serif',
+                              fontWeight: '500'
+                            }}
                             onMouseEnter={(e) => {
-                              e.currentTarget.style.color = '#e74c3c';
-                              e.currentTarget.style.paddingLeft = '1.75rem';
+                              e.currentTarget.style.color = '#dc2626';
+                              e.currentTarget.style.transform = 'translateX(4px)';
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.style.color = '#2c3e50';
-                              e.currentTarget.style.paddingLeft = '1.5rem';
+                              e.currentTarget.style.transform = 'translateX(0)';
                             }}
                           >
-                            <i className="fas fa-sign-out-alt mr-3 text-red-500"></i>
-                            Sign Out
+                            <div 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.15) 100%)'
+                              }}
+                            >
+                              <i className="fas fa-sign-out-alt text-red-500 text-xs"></i>
+                            </div>
+                            <span className="relative z-10">Sign Out</span>
+                            <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-red-400 to-red-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top"></div>
                           </button>
                         </div>
                       </div>
@@ -213,23 +320,45 @@ const Header: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <div className="hidden lg:flex items-center space-x-2">
+                <div className="hidden lg:flex items-center space-x-4">
                   <Link
                     to="/login"
-                    className="px-3 py-2 font-inter text-base font-medium rounded-lg transition-all duration-300 hover:bg-gray-50"
-                    style={{ color: '#2c3e50' }}
+                    className="px-6 py-2.5 text-base font-medium rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100"
+                    style={{ 
+                      color: '#2c3e50',
+                      fontFamily: 'Helvetica, sans-serif',
+                      letterSpacing: '0.025em'
+                    }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#6b7280';
+                      e.currentTarget.style.color = '#1a1a1a';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color = '#2c3e50';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = 'none';
                     }}
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
-                    className="px-3 py-2 font-inter text-base font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-full transition-all duration-300 hover:scale-105"
+                    className="px-6 py-2.5 text-base font-medium text-white rounded-xl transition-all duration-300 hover:scale-105"
+                    style={{
+                      background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                      fontFamily: 'Helvetica, sans-serif',
+                      letterSpacing: '0.025em',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                      e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.3)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+                    }}
                   >
                     Sign Up
                   </Link>
@@ -239,21 +368,23 @@ const Header: React.FC = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="lg:hidden p-2 rounded-lg transition-all duration-300 hover:bg-gray-100"
+                className="lg:hidden p-3 rounded-xl transition-all duration-300 hover:bg-gradient-to-br hover:from-gray-50 hover:to-gray-100"
                 style={{ color: '#2c3e50' }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#6b7280';
-                  e.currentTarget.style.transform = 'scale(1.1)';
+                  e.currentTarget.style.color = '#1a1a1a';
+                  e.currentTarget.style.transform = 'translateY(-1px) scale(1.05)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.color = '#2c3e50';
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.boxShadow = 'none';
                 }}
               >
                 <div className="relative w-6 h-6">
-                  <span className={`absolute top-0 left-0 w-full h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-45 top-2.5' : ''}`}></span>
-                  <span className={`absolute top-2.5 left-0 w-full h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : ''}`}></span>
-                  <span className={`absolute top-5 left-0 w-full h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-45 top-2.5' : ''}`}></span>
+                  <span className={`absolute top-0 left-0 w-full h-0.5 bg-current transition-all duration-300 rounded-full ${isMenuOpen ? 'rotate-45 top-2.5' : ''}`}></span>
+                  <span className={`absolute top-2.5 left-0 w-full h-0.5 bg-current transition-all duration-300 rounded-full ${isMenuOpen ? 'opacity-0' : ''}`}></span>
+                  <span className={`absolute top-5 left-0 w-full h-0.5 bg-current transition-all duration-300 rounded-full ${isMenuOpen ? '-rotate-45 top-2.5' : ''}`}></span>
                 </div>
               </button>
             </div>
@@ -263,151 +394,261 @@ const Header: React.FC = () => {
           <div className={`lg:hidden transition-all duration-300 overflow-hidden ${
             isMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
           }`}>
-            <div className="py-4 space-y-2 border-t overflow-y-auto" style={{ borderTopColor: '#e9ecef', maxHeight: 'calc(100vh - 200px)' }}>
+            <div 
+              className="py-6 space-y-4 border-t overflow-y-auto backdrop-blur-md" 
+              style={{ 
+                borderTopColor: 'rgba(26, 26, 26, 0.1)', 
+                maxHeight: 'calc(100vh - 200px)',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)'
+              }}
+            >
               {/* Navigation Links */}
-              {[
-                { to: '/', label: 'Home' },
-                { to: '/gallery', label: 'Shop' },
-                { to: '/about', label: 'About' },
-                { to: '/contact', label: 'Contact' }
-              ].map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className="block px-4 py-3 text-base font-medium transition-colors duration-200 hover:text-purple-600 hover:bg-gray-50 rounded-lg mx-2"
-                  style={{ color: '#6b7280', fontFamily: 'Helvetica, sans-serif' }}
-
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              <div className="space-y-1 px-4">
+                {[
+                  { to: '/', label: 'Home' },
+                  { to: '/gallery', label: 'Shop' },
+                  { to: '/about', label: 'About' },
+                  { to: '/contact', label: 'Contact' }
+                ].map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className="group flex items-center px-4 py-3 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/80 relative overflow-hidden"
+                    style={{ 
+                      color: '#4a5568', 
+                      fontFamily: 'Helvetica, sans-serif',
+                      fontWeight: '500',
+                      letterSpacing: '0.025em'
+                    }}
+                    onClick={() => setIsMenuOpen(false)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = '#1a1a1a';
+                      e.currentTarget.style.transform = 'translateX(4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = '#4a5568';
+                      e.currentTarget.style.transform = 'translateX(0)';
+                    }}
+                  >
+                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 mr-4 group-hover:scale-125 transition-transform duration-300"></div>
+                    {item.label}
+                    <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-gray-400 to-gray-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top rounded-r"></div>
+                  </Link>
+                ))}
+              </div>
               
               {/* Account Section for Mobile */}
-              <div className="border-t pt-2 mt-2" style={{ borderTopColor: '#e9ecef' }}>
+              <div 
+                className="border-t pt-4 mt-4 px-4" 
+                style={{ borderTopColor: 'rgba(26, 26, 26, 0.1)' }}
+              >
                 {currentUser ? (
                   <>
                     {/* User Info */}
-                    <div className="px-4 py-3 mx-2">
-                      <div className="flex items-center space-x-3">
+                    <div 
+                      className="px-4 py-4 mb-4 rounded-2xl relative overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.03) 0%, rgba(45, 45, 45, 0.05) 100%)'
+                      }}
+                    >
+                      <div className="flex items-center space-x-4 relative z-10">
                         <div 
-                          className="w-8 h-8 rounded-full flex items-center justify-center"
-                          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                          className="w-12 h-12 rounded-full flex items-center justify-center ring-2 ring-white/20 shadow-lg"
+                          style={{ 
+                            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                            boxShadow: '0 8px 32px rgba(26, 26, 26, 0.3)'
+                          }}
                         >
                           <i className="fas fa-user text-white text-sm"></i>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold" style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}>Welcome back!</p>
-                          <p className="text-xs truncate" style={{ color: '#7f8c8d', fontFamily: 'Helvetica, sans-serif' }}>{currentUser.email}</p>
+                          <p 
+                            className="text-sm font-semibold mb-1" 
+                            style={{ 
+                              color: '#1a1a1a', 
+                              fontFamily: 'Playfair Display, serif',
+                              letterSpacing: '0.025em'
+                            }}
+                          >
+                            Welcome back!
+                          </p>
+                          <p 
+                            className="text-xs truncate opacity-75" 
+                            style={{ 
+                              color: '#4a5568', 
+                              fontFamily: 'Helvetica, sans-serif',
+                              maxWidth: '200px'
+                            }}
+                          >
+                            {currentUser.email}
+                          </p>
                         </div>
                       </div>
+                      {/* Decorative gradient overlay */}
+                      <div 
+                        className="absolute top-0 right-0 w-16 h-full opacity-10"
+                        style={{
+                          background: 'linear-gradient(135deg, transparent 0%, #1a1a1a 100%)'
+                        }}
+                      ></div>
                     </div>
                     
-                    {/* Admin Dashboard Link */}
-                    {isAdmin && (
+                    <div className="space-y-2">
+                      {/* Admin Dashboard Link */}
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="group flex items-center px-4 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/80 rounded-xl relative overflow-hidden"
+                          style={{ 
+                            color: '#2c3e50', 
+                            fontFamily: 'Helvetica, sans-serif',
+                            fontWeight: '500'
+                          }}
+                          onClick={() => setIsMenuOpen(false)}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#1a1a1a';
+                            e.currentTarget.style.transform = 'translateX(4px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#2c3e50';
+                            e.currentTarget.style.transform = 'translateX(0)';
+                          }}
+                        >
+                          <div 
+                            className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.1) 0%, rgba(45, 45, 45, 0.15) 100%)'
+                            }}
+                          >
+                            <i className="fas fa-cog text-gray-600 text-xs"></i>
+                          </div>
+                          <span className="relative z-10">Admin Dashboard</span>
+                          <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-gray-400 to-gray-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top rounded-r"></div>
+                        </Link>
+                      )}
+                      
+                      {/* Order History Link */}
                       <Link
-                        to="/admin"
-                        className="flex items-center px-4 py-3 rounded-lg mx-2 transition-all duration-300 hover:bg-gray-100"
-                        style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
+                        to="/orders"
+                        className="group flex items-center px-4 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50/80 hover:to-indigo-50/80 rounded-xl relative overflow-hidden"
+                        style={{ 
+                          color: '#2c3e50', 
+                          fontFamily: 'Helvetica, sans-serif',
+                          fontWeight: '500'
+                        }}
                         onClick={() => setIsMenuOpen(false)}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#667eea';
-                          e.currentTarget.style.paddingLeft = '1.25rem';
+                          e.currentTarget.style.color = '#1a1a1a';
+                          e.currentTarget.style.transform = 'translateX(4px)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.color = '#2c3e50';
-                          e.currentTarget.style.paddingLeft = '1rem';
+                          e.currentTarget.style.transform = 'translateX(0)';
                         }}
                       >
-                        <i className="fas fa-cog mr-3 text-purple-500"></i>
-                        Admin Dashboard
+                        <div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.15) 100%)'
+                          }}
+                        >
+                          <i className="fas fa-box text-blue-600 text-xs"></i>
+                        </div>
+                        <span className="relative z-10">My Orders</span>
+                        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-400 to-indigo-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top rounded-r"></div>
                       </Link>
-                    )}
-                    
-                    {/* Order History Link */}
-                    <Link
-                      to="/orders"
-                      className="flex items-center px-4 py-3 rounded-lg mx-2 transition-all duration-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50"
-                      style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
-                      onClick={() => setIsMenuOpen(false)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#6b7280';
-                        e.currentTarget.style.paddingLeft = '1.25rem';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#2c3e50';
-                        e.currentTarget.style.paddingLeft = '1rem';
-                      }}
-                    >
-                      <i className="fas fa-box mr-3 text-blue-500"></i>
-                      My Orders
-                    </Link>
-                    
-                    {/* Sign Out Button */}
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center px-4 py-3 rounded-lg mx-2 transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50"
-                      style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#e74c3c';
-                        e.currentTarget.style.paddingLeft = '1.25rem';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#2c3e50';
-                        e.currentTarget.style.paddingLeft = '1rem';
-                      }}
-                    >
-                      <i className="fas fa-sign-out-alt mr-3 text-red-500"></i>
-                      Sign Out
-                    </button>
+                      
+                      {/* Divider */}
+                      <div className="mx-4 my-3 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
+                      
+                      {/* Sign Out Button */}
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="group w-full flex items-center px-4 py-4 text-sm transition-all duration-300 hover:bg-gradient-to-r hover:from-red-50/80 hover:to-pink-50/80 rounded-xl relative overflow-hidden"
+                        style={{ 
+                          color: '#2c3e50', 
+                          fontFamily: 'Helvetica, sans-serif',
+                          fontWeight: '500'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#dc2626';
+                          e.currentTarget.style.transform = 'translateX(4px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = '#2c3e50';
+                          e.currentTarget.style.transform = 'translateX(0)';
+                        }}
+                      >
+                        <div 
+                          className="w-8 h-8 rounded-lg flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.15) 100%)'
+                          }}
+                        >
+                          <i className="fas fa-sign-out-alt text-red-500 text-xs"></i>
+                        </div>
+                        <span className="relative z-10">Sign Out</span>
+                        <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-red-400 to-red-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top rounded-r"></div>
+                      </button>
+                    </div>
                   </>
                 ) : (
-                  <>
+                  <div className="space-y-3">
                     {/* Sign In Link */}
                     <Link
                       to="/login"
-                      className="flex items-center px-4 py-3 rounded-lg mx-2 transition-all duration-300 hover:bg-gray-100"
-                      style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
-
+                      className="group block w-full text-center px-6 py-4 text-sm font-medium transition-all duration-300 rounded-xl relative overflow-hidden"
+                      style={{
+                        color: '#2c3e50',
+                        background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.05) 0%, rgba(45, 45, 45, 0.08) 100%)',
+                        fontFamily: 'Helvetica, sans-serif',
+                        fontWeight: '500'
+                      }}
                       onClick={() => setIsMenuOpen(false)}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#6b7280';
-                        e.currentTarget.style.paddingLeft = '1.25rem';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(26, 26, 26, 0.1) 0%, rgba(45, 45, 45, 0.15) 100%)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#2c3e50';
-                        e.currentTarget.style.paddingLeft = '1rem';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, rgba(26, 26, 26, 0.05) 0%, rgba(45, 45, 45, 0.08) 100%)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = 'none';
                       }}
                     >
-                      <i className="fas fa-sign-in-alt mr-3 text-gray-500"></i>
                       Sign In
                     </Link>
                     
                     {/* Sign Up Link */}
                     <Link
                       to="/register"
-                      className="flex items-center px-4 py-3 rounded-lg mx-2 transition-all duration-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50"
-                      style={{ color: '#2c3e50', fontFamily: 'Helvetica, sans-serif' }}
+                      className="group block w-full text-center px-6 py-4 text-sm font-medium text-white transition-all duration-300 rounded-xl relative overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                        fontFamily: 'Helvetica, sans-serif',
+                        fontWeight: '500',
+                        boxShadow: '0 4px 15px rgba(26, 26, 26, 0.3)'
+                      }}
                       onClick={() => setIsMenuOpen(false)}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.color = '#667eea';
-                        e.currentTarget.style.paddingLeft = '1.25rem';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #2d2d2d 0%, #1a1a1a 50%, #2d2d2d 100%)';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(26, 26, 26, 0.4)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.color = '#2c3e50';
-                        e.currentTarget.style.paddingLeft = '1rem';
+                        e.currentTarget.style.background = 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(26, 26, 26, 0.3)';
                       }}
                     >
-                      <i className="fas fa-user-plus mr-3 text-purple-500"></i>
                       Sign Up
                     </Link>
-                  </>
+                  </div>
                 )}
               </div>
             </div>

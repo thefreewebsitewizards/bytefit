@@ -1,6 +1,6 @@
 # GitHub Repository Checklist
 
-This checklist ensures the project is ready for GitHub and production deployment.
+This checklist ensures the ByteFit project is ready for GitHub and production deployment.
 
 ## ✅ Completed Items
 
@@ -74,7 +74,7 @@ Once all items are checked:
    ```bash
    git init
    git add .
-   git commit -m "Initial commit: Moroz Art Gallery application"
+   git commit -m "Initial commit: ByteFit e-commerce application"
    ```
 
 2. **Create GitHub Repository**

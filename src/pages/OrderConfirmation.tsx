@@ -265,8 +265,8 @@ const OrderConfirmation: React.FC<OrderConfirmationProps> = () => {
           <div className="mt-8 pt-6 border-t border-neutral-200">
             <p className="text-sm text-neutral-500">
               Need help? Contact us at{' '}
-              <a href="mailto:support@moroz-art.com" className="text-blue-600 hover:text-blue-500">
-                support@moroz-art.com
+              <a href="mailto:support@bytefit.com" className="text-blue-600 hover:text-blue-500">
+                  support@bytefit.com
               </a>
             </p>
           </div>

@@ -7,9 +7,9 @@
     "rules": "storage.rules"
   },
   "functions": {
-    "source": "functions",
-    "predeploy": []
-  },
+        "source": "functions",
+        "runtime": "nodejs20"
+    },
   "hosting": {
     "public": "customer-side_fronted",
     "ignore": [
@@ -29,7 +29,7 @@
       "port": 9098
     },
     "functions": {
-      "port": 5001
+      "port": 5003
     },
     "firestore": {
       "port": 8080
@@ -42,7 +42,7 @@
     },
     "ui": {
       "enabled": true,
-      "port": 4000
+      "port": 4002
     }
   }
 }

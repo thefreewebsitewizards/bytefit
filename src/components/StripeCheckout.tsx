@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { createCheckoutSession } from '../services/stripe';
 import { toast } from 'react-toastify';
 import { ShippingRate } from '../services/clientShipping';
-
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY!);
 
 interface StripeCheckoutProps {
   onSuccess?: () => void;
@@ -26,40 +22,21 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = ({ onSuccess, onCancel, di
     console.log('🔥 Checkout button clicked!');
     console.log('📦 Items in cart:', items);
     console.log('👤 Current user:', currentUser);
-    console.log('🔑 Connected Account ID:', process.env.REACT_APP_STRIPE_CONNECTED_ACCOUNT_ID);
     
     if (items.length === 0) {
       console.log('❌ No items in cart, aborting checkout');
       return;
     }
 
-    setLoading(true);
-    try {
-      console.log('🚀 Starting checkout session creation...');
-      // Create checkout session with connected account ID
-      const session = await createCheckoutSession({
-        items,
-        customerEmail: currentUser?.email || 'guest@example.com',
-        connectedAccountId: process.env.REACT_APP_STRIPE_CONNECTED_ACCOUNT_ID!,
-        successUrl: `${window.location.origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/cart`,
-        selectedShippingRateId: selectedShippingRate?.id,
-      });
-      
-      console.log('✅ Checkout session created:', session);
-
-      if (session.url) {
-        // Redirect to Stripe's hosted checkout page
-        window.location.href = session.url;
-      } else if (session.client_secret) {
-        setClientSecret(session.client_secret);
-      }
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      toast.error('Failed to initialize checkout. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    // Stripe functionality is disabled for this project
+    toast.info('Checkout is currently disabled');
+    console.log('💳 Stripe checkout is disabled for this project');
+    
+    // Simulate successful checkout for demo
+    setTimeout(() => {
+      onSuccess?.();
+      toast.success('🎉 Demo checkout completed! (No actual payment processed)');
+    }, 1000);
   };
 
   const handlePayment = async () => {

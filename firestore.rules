@@ -46,5 +46,13 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/Users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // Categories collection - read for all, write for admins only
+    match /categories/{categoryId} {
+      allow read: if true; // Anyone can read categories
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/Users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

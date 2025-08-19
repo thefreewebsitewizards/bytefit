@@ -2,7 +2,7 @@
 // This file handles all Stripe Connect operations through Firebase Functions
 
 // Firebase Functions API base URL
-const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-ksenia-munoz.cloudfunctions.net';
+const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
 
 // Types for Stripe Connect
 export interface ConnectedAccount {
@@ -81,7 +81,7 @@ export const createConnectedAccount = async (email: string, country: string = 'U
         type: 'express',
         businessType: 'individual',
         metadata: {
-          platform: 'moroz-art',
+          platform: 'bytefit',
           userType: 'artist',
           registrationDate: new Date().toISOString()
         }

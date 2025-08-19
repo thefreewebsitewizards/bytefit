@@ -35,7 +35,7 @@ const Register: React.FC = () => {
       if (result.success) {
         navigate('/', { 
           state: { 
-            message: 'Account created successfully! Welcome to Ksenia Moroz Art Gallery.' 
+            message: 'Account created successfully! Welcome to ByteFit.' 
           }
         });
       } else {

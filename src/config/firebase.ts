@@ -6,12 +6,12 @@ import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyCDy5hBMFfqzWQinV0sLLZAFh8koVZE5Qk",
-  authDomain: "ksenia-munoz.firebaseapp.com",
-  projectId: "ksenia-munoz",
-  storageBucket: "ksenia-munoz.firebasestorage.app",
-  messagingSenderId: "982189236395",
-  appId: "1:982189236395:web:594648694ec020153f17ee"
+  apiKey: "AIzaSyC7zIOLQ-3bSTc9ORdBc-PWwqPDbwmxqFc",
+  authDomain: "bytefit-v2.firebaseapp.com",
+  projectId: "bytefit-v2",
+  storageBucket: "bytefit-v2.firebasestorage.app",
+  messagingSenderId: "133190653365",
+  appId: "1:133190653365:web:b16171c3e919a32272b5fc"
 };
 
 // Initialize Firebase

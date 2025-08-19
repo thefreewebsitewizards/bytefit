@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide covers deploying the Moroz Art Gallery application to production.
+This guide covers deploying the ByteFit application to production.
 
 ## Prerequisites
 

@@ -20,7 +20,8 @@ import {
 import {
   ref,
   uploadBytes,
-  getDownloadURL
+  getDownloadURL,
+  deleteObject
 } from 'firebase/storage';
 import { auth, db, storage } from '../config/firebase';
 
@@ -43,7 +44,8 @@ export interface Product {
   description: string;
   price: number;
   category: string;
-  image: string;
+  image: string; // Keep for backward compatibility
+  images?: string[]; // New field for multiple images
   createdAt?: Timestamp;
 }
 
@@ -91,6 +93,16 @@ export interface UserProfile {
   role: 'customer' | 'admin';
   userType?: 'customer' | 'admin';
   createdAt?: Timestamp;
+}
+
+export interface Category {
+  id?: string;
+  name: string;
+  description?: string;
+  slug: string;
+  isActive: boolean;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 }
 
 // Authentication functions
@@ -155,7 +167,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 export const isUserAdmin = async (uid: string): Promise<boolean> => {
   try {
     const userProfile = await getUserProfile(uid);
-    return userProfile?.role === 'admin' || false;
+    return userProfile?.role === 'admin' || userProfile?.userType === 'admin' || false;
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;
@@ -169,7 +181,7 @@ export const updateUserRole = async (uid: string, role: 'customer' | 'admin'): P
     
     if (!querySnapshot.empty) {
       const docRef = doc(db, 'Users', querySnapshot.docs[0].id);
-      await updateDoc(docRef, { role });
+      await updateDoc(docRef, { role, userType: role });
       return true;
     }
     
@@ -296,7 +308,7 @@ export const createOrderFromStripeSession = async (
       customerEmail
     });
     
-    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-ksenia-munoz.cloudfunctions.net';
+    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
     const requestUrl = `${API_BASE_URL}/createOrderFromPaymentId`;
     
     console.log('📡 Making request to:', requestUrl);
@@ -346,7 +358,7 @@ export const createOrderFromStripeSession = async (
 
 export const getUserOrders = async (userId: string): Promise<Order[]> => {
   try {
-    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-ksenia-munoz.cloudfunctions.net';
+    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
     
     const response = await fetch(`${API_BASE_URL}/getUserOrdersV2?userId=${userId}`, {
       method: 'GET',
@@ -370,7 +382,7 @@ export const getUserOrders = async (userId: string): Promise<Order[]> => {
 
 export const getAllOrders = async (): Promise<Order[]> => {
   try {
-    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-ksenia-munoz.cloudfunctions.net';
+    const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
     
     const response = await fetch(`${API_BASE_URL}/getAllOrdersV2`, {
       method: 'GET',
@@ -431,6 +443,36 @@ export const uploadProductImage = async (file: File, productId: string): Promise
   }
 };
 
+// Upload multiple product images
+export const uploadProductImages = async (files: File[], productId: string): Promise<string[]> => {
+  try {
+    const uploadPromises = files.map(async (file, index) => {
+      const fileName = `${Date.now()}_${index}_${file.name}`;
+      const storageRef = ref(storage, `products/${productId}/${fileName}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      return await getDownloadURL(snapshot.ref);
+    });
+    
+    const downloadURLs = await Promise.all(uploadPromises);
+    return downloadURLs.filter(url => url !== null);
+  } catch (error) {
+    console.error('Error uploading multiple images:', error);
+    return [];
+  }
+};
+
+// Delete product image from storage
+export const deleteProductImage = async (imageUrl: string): Promise<boolean> => {
+  try {
+    const imageRef = ref(storage, imageUrl);
+    await deleteObject(imageRef);
+    return true;
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    return false;
+  }
+};
+
 // Analytics functions
 export const getAnalyticsData = async () => {
   try {
@@ -455,6 +497,108 @@ export const getAnalyticsData = async () => {
     };
   } catch (error) {
     console.error('Error getting analytics data:', error);
+    return null;
+  }
+};
+
+// Category functions
+export const getAllCategories = async (): Promise<Category[]> => {
+  try {
+    const q = query(collection(db, 'categories'), orderBy('name'));
+    const querySnapshot = await getDocs(q);
+    const categories: Category[] = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() } as Category);
+    });
+    return categories;
+  } catch (error) {
+    console.error('Error getting categories:', error);
+    return [];
+  }
+};
+
+export const getActiveCategories = async (): Promise<Category[]> => {
+  try {
+    const q = query(
+      collection(db, 'categories'),
+      where('isActive', '==', true),
+      orderBy('name')
+    );
+    const querySnapshot = await getDocs(q);
+    const categories: Category[] = [];
+    querySnapshot.forEach((doc) => {
+      categories.push({ id: doc.id, ...doc.data() } as Category);
+    });
+    return categories;
+  } catch (error) {
+    console.error('Error getting active categories:', error);
+    return [];
+  }
+};
+
+export const getCategoryById = async (categoryId: string): Promise<Category | null> => {
+  try {
+    const docRef = doc(db, 'categories', categoryId);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() } as Category;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting category:', error);
+    return null;
+  }
+};
+
+export const addCategory = async (categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> => {
+  try {
+    const docRef = await addDoc(collection(db, 'categories'), {
+      ...categoryData,
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now()
+    });
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding category:', error);
+    return null;
+  }
+};
+
+export const updateCategory = async (categoryId: string, categoryData: Partial<Omit<Category, 'id' | 'createdAt'>>): Promise<boolean> => {
+  try {
+    const docRef = doc(db, 'categories', categoryId);
+    await updateDoc(docRef, {
+      ...categoryData,
+      updatedAt: Timestamp.now()
+    });
+    return true;
+  } catch (error) {
+    console.error('Error updating category:', error);
+    return false;
+  }
+};
+
+export const deleteCategory = async (categoryId: string): Promise<boolean> => {
+  try {
+    await deleteDoc(doc(db, 'categories', categoryId));
+    return true;
+  } catch (error) {
+    console.error('Error deleting category:', error);
+    return false;
+  }
+};
+
+export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
+  try {
+    const q = query(collection(db, 'categories'), where('slug', '==', slug));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      const doc = querySnapshot.docs[0];
+      return { id: doc.id, ...doc.data() } as Category;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting category by slug:', error);
     return null;
   }
 };

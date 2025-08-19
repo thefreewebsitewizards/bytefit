@@ -5,7 +5,6 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import StripeCheckout from '../components/StripeCheckout';
 import ShippingSelector from '../components/ShippingSelector';
-import { STRIPE_CONFIG } from '../config/stripe';
 import { ShippingRate } from '../services/clientShipping';
 
 const Cart: React.FC = () => {
@@ -243,7 +242,6 @@ const Cart: React.FC = () => {
                 <div className="border-t border-gray-200 pt-6">
                   <ShippingSelector
                     orderTotal={total}
-                    connectedAccountId={STRIPE_CONFIG.connectedAccountId}
                     onShippingSelect={setSelectedShippingRate}
                     selectedShippingRate={selectedShippingRate}
                   />

@@ -1,32 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllProducts, getProductsByCategory, Product } from '../services/firebase';
+import { getAllProducts, getProductsByCategory, Product, getActiveCategories, Category } from '../services/firebase';
 import { useCart } from '../context/CartContext';
 
 const Gallery: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const { addItem } = useCart();
 
-  const categories = ['all', 'postcards', 'wall-art', 'bookmarks', 'custom'];
-
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const allProducts = await getAllProducts();
+        const [allProducts, activeCategories] = await Promise.all([
+          getAllProducts(),
+          getActiveCategories()
+        ]);
         setProducts(allProducts);
         setFilteredProducts(allProducts);
+        setCategories(activeCategories);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -34,9 +37,16 @@ const Gallery: React.FC = () => {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product => 
-        product.category.toLowerCase() === selectedCategory.toLowerCase()
-      );
+      filtered = filtered.filter(product => {
+        // Handle both old string categories and new slug-based categories
+        const productCategory = product.category.toLowerCase();
+        const selectedCat = selectedCategory.toLowerCase();
+        
+        // Direct match with category slug or name
+        return productCategory === selectedCat || 
+               productCategory === selectedCat.replace(/-/g, ' ') ||
+               productCategory.replace(/\s+/g, '-') === selectedCat;
+      });
     }
 
     // Filter by search term
@@ -48,7 +58,7 @@ const Gallery: React.FC = () => {
     }
 
     setFilteredProducts(filtered);
-  }, [products, selectedCategory, searchTerm]);
+  }, [products, selectedCategory, searchTerm, categories]);
 
   const handleAddToCart = (product: Product) => {
     if (product.id) {
@@ -143,20 +153,30 @@ const Gallery: React.FC = () => {
 
               {/* Category Filter */}
               <div className="flex flex-wrap gap-2 justify-center">
+                {/* All Categories Button */}
+                <button
+                  onClick={() => setSelectedCategory('all')}
+                  className={`px-4 py-2 lg:px-6 lg:py-3 text-xs lg:text-sm font-medium transition-all duration-300 ${
+                    selectedCategory === 'all'
+                      ? 'bg-black text-white shadow-lg'
+                      : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  All
+                </button>
+                
+                {/* Dynamic Category Buttons */}
                 {categories.map((category) => (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.slug)}
                     className={`px-4 py-2 lg:px-6 lg:py-3 text-xs lg:text-sm font-medium transition-all duration-300 ${
-                      selectedCategory === category
+                      selectedCategory === category.slug
                         ? 'bg-black text-white shadow-lg'
                         : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
                     }`}
                   >
-                    {category === 'all' ? 'All' : 
-                     category === 'wall-art' ? 'Wall Art' :
-                     category === 'custom' ? 'Custom Pieces' :
-                     category.charAt(0).toUpperCase() + category.slice(1)}
+                    {category.name}
                   </button>
                 ))}
               </div>
@@ -217,7 +237,7 @@ const Gallery: React.FC = () => {
                   <div key={product.id} className="group bg-white shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100">
                     <div className="aspect-square overflow-hidden bg-gray-50">
                       <img
-                        src={product.image}
+                        src={product.images && product.images.length > 0 ? product.images[0] : product.image}
                         alt={product.name}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />

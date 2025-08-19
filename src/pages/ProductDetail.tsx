@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getProductById, Product } from '../services/firebase';
 import { useCart } from '../context/CartContext';
+import ImageCarousel from '../components/ImageCarousel';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
 
   const { addItem } = useCart();
 
@@ -39,8 +40,8 @@ const ProductDetail: React.FC = () => {
     }
   };
 
-  // Mock additional images for gallery effect
-  const productImages = product ? [product.image, product.image, product.image] : [];
+  // Get product images - use images array if available, fallback to single image
+  const productImages = product ? (product.images && product.images.length > 0 ? product.images : [product.image]) : [];
 
   if (loading) {
     return (
@@ -118,63 +119,11 @@ const ProductDetail: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Enhanced Product Image Gallery */}
           <div className="space-y-6">
-            {/* Main Image */}
-            <div 
-              className="aspect-square overflow-hidden bg-white relative group border border-gray-200 shadow-lg"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-black/5 to-gray-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-              <img
-                src={productImages[selectedImageIndex] || product.image}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              {/* Image navigation arrows */}
-              {productImages.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setSelectedImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length)}
-                    className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/80 hover:bg-black p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
-                  >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button
-                    onClick={() => setSelectedImageIndex((prev) => (prev + 1) % productImages.length)}
-                    className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/80 hover:bg-black p-3 transition-all duration-200 opacity-0 group-hover:opacity-100 shadow-lg"
-                  >
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </>
-              )}
-            </div>
-            
-            {/* Thumbnail Gallery */}
-            {productImages.length > 1 && (
-              <div className="flex gap-4">
-                {productImages.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`w-24 h-24 overflow-hidden border-3 transition-all duration-300 shadow-md hover:shadow-lg ${
-                      selectedImageIndex === index 
-                        ? 'border-black scale-110' 
-                        : 'border-gray-200 hover:border-gray-400'
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} view ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            <ImageCarousel 
+              images={productImages} 
+              productName={product.name}
+              className="aspect-square"
+            />
             
             {/* Enhanced Shipping Info - Moved to Left */}
             <div 

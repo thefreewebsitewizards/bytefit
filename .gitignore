@@ -51,6 +51,11 @@ firebase-debug.log
 Thumbs.db
 ehthumbs.db
 
+# Firebase service account keys (contains sensitive private keys)
+firebase-service-account-key.json
+*-service-account-key.json
+service-account-key.json
+
 # Old frontend (development artifacts)
 /OLD FRONTEND/
 .vercel

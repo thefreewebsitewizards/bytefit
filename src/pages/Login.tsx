@@ -29,7 +29,7 @@ const Login: React.FC = () => {
         if (result.user) {
           const userProfile = await getUserProfile(result.user.uid);
           
-          if (userProfile?.role === 'admin') {
+          if (userProfile?.role === 'admin' || userProfile?.userType === 'admin') {
             // Add a small delay to ensure AuthContext updates
             setTimeout(() => {
               navigate('/admin', { replace: true });
@@ -225,12 +225,12 @@ const Login: React.FC = () => {
               <div className="grid grid-cols-1 gap-4">
                 <div className="bg-white/60 rounded-xl p-4 border border-white/40">
                   <p className="font-semibold text-neutral-800 mb-2">Customer Account</p>
-                  <p className="text-sm text-neutral-700"><span className="font-medium">Email:</span> customer@morozart.com</p>
+                  <p className="text-sm text-neutral-700"><span className="font-medium">Email:</span> customer@bytefit.com</p>
                   <p className="text-sm text-neutral-700"><span className="font-medium">Password:</span> customer123</p>
                 </div>
                 <div className="bg-white/60 rounded-xl p-4 border border-white/40">
                   <p className="font-semibold text-neutral-800 mb-2">Admin Account</p>
-                  <p className="text-sm text-neutral-700"><span className="font-medium">Email:</span> admin@morozart.com</p>
+                  <p className="text-sm text-neutral-700"><span className="font-medium">Email:</span> admin@bytefit.com</p>
                   <p className="text-sm text-neutral-700"><span className="font-medium">Password:</span> admin123</p>
                 </div>
               </div>

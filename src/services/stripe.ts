@@ -2,10 +2,9 @@
 // This file handles all Stripe-related operations through our backend API
 
 import { CartItem } from './firebase';
-import { formatAmountForStripe, calculateApplicationFee } from '../config/stripe';
 
 // Firebase Functions API base URL
-const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-ksenia-munoz.cloudfunctions.net';
+const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
 
 // Types for Stripe integration
 export interface CheckoutSessionData {
@@ -48,7 +47,7 @@ export const createCheckoutSession = async (data: CheckoutSessionData): Promise<
         successUrl: data.successUrl,
         cancelUrl: data.cancelUrl,
         metadata: {
-          source: 'moroz-art-frontend',
+          source: 'bytefit-frontend',
           timestamp: new Date().toISOString()
         }
       }),
@@ -118,7 +117,7 @@ export const createPaymentIntent = async (data: CheckoutSessionData): Promise<an
             quantity: item.quantity || 1
           }))),
           customerEmail: data.customerEmail,
-          source: 'moroz-art-frontend'
+          source: 'bytefit-frontend'
         }
       }),
     });

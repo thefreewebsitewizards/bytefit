@@ -1,15 +1,15 @@
-# Moroz Art Gallery
+# ByteFit
 
-A modern e-commerce platform for showcasing and selling artwork, built with React, TypeScript, and Firebase.
+A modern e-commerce platform for premium streetwear, built with React, TypeScript, and Firebase.
 
 ## Features
 
-- **Gallery**: Browse and view artwork with detailed product pages
+- **Gallery**: Browse and view streetwear with detailed product pages
 - **Shopping Cart**: Add items to cart and proceed to checkout
 - **User Authentication**: Secure login and registration system
 - **Order Management**: Track order history and status
 - **Admin Dashboard**: Manage products, orders, and users
-- **Artist Dashboard**: Artists can manage their own products
+- **Brand Dashboard**: Brands can manage their own products
 - **Stripe Integration**: Secure payment processing
 - **Responsive Design**: Optimized for all devices
 
@@ -33,7 +33,7 @@ A modern e-commerce platform for showcasing and selling artwork, built with Reac
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd moroz-art-gallery
+   cd bytefit
    ```
 
 2. **Frontend Setup**
@@ -86,8 +86,8 @@ A modern e-commerce platform for showcasing and selling artwork, built with Reac
 
 ### Test Accounts
 
-- **Customer**: customer@morozart.com / customer123
-- **Admin**: admin@morozart.com / admin123
+- **Customer**: customer@bytefit.com / customer123
+- **Admin**: admin@bytefit.com / admin123
 
 ### Building for Production
 
@@ -150,4 +150,4 @@ npm run build
 
 ## License
 
-This project is proprietary software developed for Moroz Art Gallery.
+This project is proprietary software developed for ByteFit.
