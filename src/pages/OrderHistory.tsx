@@ -207,7 +207,7 @@ const OrderHistory: React.FC = () => {
                           <p className="text-sm text-gray-600">Quantity: {item.quantity || 1}</p>
                         </div>
                         <div className="text-sm font-medium text-gray-900">
-                          ${item.price.toFixed(2)}
+                          AED {item.price.toFixed(2)}
                         </div>
                       </div>
                     ))}
@@ -216,12 +216,32 @@ const OrderHistory: React.FC = () => {
 
                 {/* Order Footer */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm text-gray-600">
-                      {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="text-sm text-gray-600">
+                        {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                      </div>
+                      <div className="text-sm text-gray-900">
+                        Subtotal: AED {(order.subtotal || order.total - (order.shippingCost || 0)).toFixed(2)}
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold text-gray-900">
-                      Total: ${order.total.toFixed(2)}
+                    {order.shippingCost && order.shippingCost > 0 && (
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-gray-600">
+                          {order.shippingName || 'Shipping & Handling'}
+                        </div>
+                        <div className="text-sm text-gray-900">
+                          AED {order.shippingCost.toFixed(2)}
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <div className="text-base font-medium text-gray-900">
+                        Total
+                      </div>
+                      <div className="text-lg font-semibold text-gray-900">
+                        AED {order.total.toFixed(2)}
+                      </div>
                     </div>
                   </div>
                   {order.shippingAddress && (

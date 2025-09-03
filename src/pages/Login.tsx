@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUserProfile } from '../services/firebase';
+import { validateEmail, validateRequired } from '../utils/validationUtils';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');

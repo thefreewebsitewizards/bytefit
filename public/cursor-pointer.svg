@@ -1,0 +1,21 @@
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1" stdDeviation="2" flood-color="rgba(0,0,0,0.4)"/>
+    </filter>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1a1a1a"/>
+      <stop offset="100%" stop-color="#2d2d2d"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer ring -->
+  <circle cx="14" cy="14" r="12" fill="none" stroke="#e45c06" stroke-width="2" opacity="0.6" filter="url(#shadow)"/>
+  
+  <!-- Inner cursor -->
+  <path d="M6 6L20 14L14 16L10 22L6 6Z" fill="url(#gradient)" stroke="#ffffff" stroke-width="1"/>
+  
+  <!-- Brand accent -->
+  <circle cx="10" cy="10" r="2" fill="#e45c06"/>
+  <circle cx="10" cy="10" r="1" fill="#ffffff" opacity="0.8"/>
+</svg>

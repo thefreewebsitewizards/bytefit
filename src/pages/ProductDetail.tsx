@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getProductById, Product } from '../services/firebase';
+import { getProductById, Product, getAllSizes, Size } from '../services/firebase';
 import { useCart } from '../context/CartContext';
 import ImageCarousel from '../components/ImageCarousel';
 
@@ -8,36 +8,58 @@ const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [selectedSize, setSelectedSize] = useState<string>('');
 
 
   const { addItem } = useCart();
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       if (id) {
         try {
-          const productData = await getProductById(id);
+          const [productData, sizesData] = await Promise.all([
+            getProductById(id),
+            getAllSizes()
+          ]);
           setProduct(productData);
+          setSizes(sizesData);
         } catch (error) {
-          console.error('Error fetching product:', error);
+          console.error('Error fetching data:', error);
         } finally {
           setLoading(false);
         }
       }
     };
 
-    fetchProduct();
+    fetchData();
   }, [id]);
 
   const handleAddToCart = () => {
     if (product && product.id) {
+      // Check if product has sizes and if size is selected
+      const productSizes = getAvailableSizes();
+      if (productSizes.length > 0 && !selectedSize) {
+        alert('Please select a size before adding to cart.');
+        return;
+      }
+      
       addItem({
         id: product.id,
         name: product.name,
         price: product.price,
-        image: product.image
+        image: product.image,
+        size: selectedSize || undefined
       });
     }
+  };
+
+  // Get available sizes for the current product
+  const getAvailableSizes = () => {
+    if (!product?.sizes || !sizes) return [];
+    return sizes.filter(size => 
+      size.isActive && product.sizes?.includes(size.slug)
+    );
   };
 
   // Get product images - use images array if available, fallback to single image
@@ -125,48 +147,7 @@ const ProductDetail: React.FC = () => {
               className="aspect-square"
             />
             
-            {/* Enhanced Shipping Info - Moved to Left */}
-            <div 
-              className="p-8 relative overflow-hidden bg-white border border-black shadow-xl"
-            >
-              <div className="flex items-start space-x-4">
-                <div 
-                  className="w-12 h-12 flex items-center justify-center flex-shrink-0 bg-black"
-                >
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-playfair text-xl font-bold text-black mb-3">
-                    Shipping & Delivery
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                    <div className="p-4 bg-gray-50 border border-gray-200">
-                      <h5 className="font-playfair font-semibold text-black mb-2">Standard Shipping</h5>
-                      <p className="font-playfair text-sm">Small items: $6</p>
-                      <p className="font-playfair text-sm">Medium framed: $20</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 border border-gray-200">
-                      <h5 className="font-playfair font-semibold text-black mb-2">Express Delivery</h5>
-                      <p className="font-playfair text-sm">FREE shipping on orders over $50</p>
-                      <p className="font-playfair text-sm">Local delivery available</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 mt-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-black animate-pulse"></div>
-                      <span className="font-playfair text-gray-700 text-sm">Insured Delivery</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-black animate-pulse"></div>
-                      <span className="font-playfair text-gray-700 text-sm">Real-time Tracking</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </div>
 
           {/* Enhanced Product Info - Combined Section */}
@@ -213,9 +194,9 @@ const ProductDetail: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
                     <span className="text-4xl font-bold text-black" style={{fontFamily: 'Playfair Display, serif'}}>
-                      ${product.price}
+                      AED {product.price}
                     </span>
-                    <span className="text-sm text-gray-400 font-medium">USD</span>
+                    <span className="text-sm text-gray-400 font-medium">AED</span>
                   </div>
                   
                   <div className="flex items-center gap-2 bg-green-50 px-4 py-2 border border-green-200">
@@ -242,7 +223,7 @@ const ProductDetail: React.FC = () => {
                     <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className="font-playfair text-sm">Free Shipping $50+</span>
+                    <span className="font-playfair text-sm">Free Shipping AED 200+</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-600">
                     <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,6 +233,33 @@ const ProductDetail: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Size Selection */}
+              {getAvailableSizes().length > 0 && (
+                <div className="border-t border-slate-200 pt-8">
+                  <h4 className="font-playfair text-lg font-semibold mb-4 text-black">Select Size</h4>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                    {getAvailableSizes().map((size) => (
+                      <button
+                        key={size.id}
+                        onClick={() => setSelectedSize(size.slug)}
+                        className={`p-3 border-2 transition-all duration-200 font-medium ${
+                          selectedSize === size.slug
+                            ? 'border-black bg-black text-white'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        {size.name}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedSize && (
+                    <p className="text-sm text-gray-600 mt-2">
+                      Selected size: <span className="font-semibold">{sizes.find(s => s.slug === selectedSize)?.name}</span>
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Add to Cart Section */}
               <div className="border-t border-slate-200 pt-8">
@@ -264,7 +272,7 @@ const ProductDetail: React.FC = () => {
                     <svg className="w-5 h-5 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h8.5" />
                     </svg>
-                    <span className="relative z-10">Add to Cart - ${product.price.toFixed(2)}</span>
+                    <span className="relative z-10">Add to Cart - AED {product.price.toFixed(2)}</span>
                   </button>
                   
                   <Link 
@@ -304,7 +312,7 @@ const ProductDetail: React.FC = () => {
                 
                 <div className="flex justify-between items-center p-4 border border-gray-200" style={{ backgroundColor: '#f8f9fa' }}>
                   <span className="font-playfair font-medium text-gray-700">Shipping:</span>
-                  <span className="font-playfair font-bold text-black">From $6 (Free over $50)</span>
+                  <span className="font-playfair font-bold text-black">From AED 22 (Free over AED 200)</span>
                 </div>
                 
                 <div className="flex justify-between items-center p-4 border border-gray-200" style={{ backgroundColor: '#f8f9fa' }}>
@@ -315,6 +323,51 @@ const ProductDetail: React.FC = () => {
             </div>
 
 
+          </div>
+        </div>
+        
+        {/* Enhanced Shipping Info - Moved to Bottom */}
+        <div className="mt-16">
+          <div 
+            className="p-8 relative overflow-hidden bg-white border border-black shadow-xl"
+          >
+            <div className="flex items-start space-x-4">
+              <div 
+                className="w-12 h-12 flex items-center justify-center flex-shrink-0 bg-black"
+              >
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4-8-4m16 0v10l-8 4-8-4V7" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="font-playfair text-xl font-bold text-black mb-3">
+                  Shipping & Delivery
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+                  <div className="p-4 bg-gray-50 border border-gray-200">
+                    <h5 className="font-playfair font-semibold text-black mb-2">Standard Shipping</h5>
+                    <p className="font-playfair text-sm">Small items: AED 22</p>
+                    <p className="font-playfair text-sm">Medium framed: AED 74</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 border border-gray-200">
+                    <h5 className="font-playfair font-semibold text-black mb-2">Express Delivery</h5>
+                    <p className="font-playfair text-sm">FREE shipping on orders over AED 200</p>
+                    <p className="font-playfair text-sm">Local delivery available</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-4 mt-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-black animate-pulse"></div>
+                    <span className="font-playfair text-gray-700 text-sm">Insured Delivery</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-black animate-pulse"></div>
+                    <span className="font-playfair text-gray-700 text-sm">Real-time Tracking</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         

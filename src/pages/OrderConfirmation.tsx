@@ -55,14 +55,12 @@ const OrderConfirmation: React.FC<OrderConfirmationProps> = () => {
 
           try {
             // First verify the payment was successful by checking session status
-            const sessionData = await getCheckoutSession(sessionId); // getCheckoutSession already returns the session data directly
+            const sessionData = await getCheckoutSession(sessionId);
             
             // Stripe checkout sessions use 'complete' status when payment is successful
-            // For test sessions, we should also accept 'open' status as valid
-            // TEMPORARY: Force payment condition to true for testing
-            const paymentCondition = true; // sessionData.payment_status === 'paid' || 
-                                   // sessionData.status === 'complete' ||
-                                   // (sessionId.includes('test') && sessionData.status === 'open');
+            // Also check payment_status for 'paid' status
+            const paymentCondition = sessionData.payment_status === 'paid' || 
+                                   sessionData.status === 'complete';
 
             
             if (paymentCondition) {

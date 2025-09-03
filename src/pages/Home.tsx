@@ -355,7 +355,7 @@ const Home: React.FC = () => {
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
               {[...Array(6)].map((_, index) => (
                 <div 
                   key={index} 
@@ -369,90 +369,106 @@ const Home: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 xl:gap-10">
               {featuredProducts.map((product, index) => (
-                <div 
-                  key={product.id} 
-                  className="group bg-bone-50 overflow-hidden hover-lift relative scroll-reveal"
+                <Link 
+                  key={product.id}
+                  to={`/product/${product.id}`}
+                  className="group relative bg-white rounded-3xl overflow-hidden hover-lift scroll-reveal transform sm:hover:-translate-y-3 sm:hover:scale-[1.02] transition-all duration-300 sm:duration-700 block"
                   style={{ 
-                     boxShadow: '0 10px 30px rgba(10, 10, 10, 0.08)',
-                     border: '1px solid rgba(58, 58, 58, 0.1)',
-                     animationDelay: `${index * 0.1}s`
+                     boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08)',
+                     border: '1px solid rgba(0, 0, 0, 0.06)',
+                     animationDelay: `${index * 0.15}s`,
+                     background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%)'
                    }}
                 >
-                  {/* Gradient overlay on hover */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-charcoal-500/5 to-ash-gray-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                  <div className="aspect-square overflow-hidden relative">
+                  {/* Premium badge - desktop only */}
+                  <div className="absolute top-6 left-6 z-20 opacity-0 sm:group-hover:opacity-100 transition-all duration-500 transform -translate-y-2 sm:group-hover:translate-y-0 hidden sm:block">
+                    <span className="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-bold px-4 py-2 rounded-full shadow-xl backdrop-blur-sm">
+                      FEATURED
+                    </span>
+                  </div>
+                  
+                  {/* Wishlist button */}
+                  <div className="absolute top-6 right-6 z-20 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Add to wishlist functionality here
+                        console.log('Added to wishlist:', product.name);
+                      }}
+                      className="bg-white/95 backdrop-blur-md hover:bg-white text-gray-600 hover:text-red-500 w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95"
+                      title="Add to Wishlist"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Gradient overlay on hover - desktop only */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/5 opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 sm:duration-700 pointer-events-none z-10 hidden sm:block"></div>
+                  
+                  <div className="aspect-[4/5] overflow-hidden relative bg-gradient-to-br from-gray-50 to-gray-100">
                     <img
                       src={product.images && product.images.length > 0 ? product.images[0] : product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-500 sm:duration-1000 sm:group-hover:scale-115 ease-out"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.src = '/images/placeholder.jpg';
                       }}
                     />
-                    {/* Image overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
-                    {/* Quick view badge */}
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                      <span className="bg-bone-50/90 backdrop-blur-sm text-ash-gray-700 px-3 py-1 text-xs font-medium shadow-lg">
-                        Quick View
-                      </span>
-                    </div>
+                    {/* Image overlay gradient - desktop only */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity duration-500 sm:duration-700 hidden sm:block"></div>
                   </div>
                   
-                  <div className="p-8 relative">
-                    <div className="mb-4">
+                  <div className="p-4 sm:p-6 lg:p-8 relative space-y-3 sm:space-y-4 lg:space-y-5">
+                    <div className="space-y-2 sm:space-y-3">
                       <h3 
-                        className="font-playfair text-xl font-bold mb-3 text-jet-black group-hover:text-charcoal-700 transition-colors duration-300"
+                        className="font-playfair text-sm sm:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-gray-700 transition-colors duration-500 line-clamp-2 mobile-card-title"
                       >
                         {product.name}
                       </h3>
                       <p 
-                        className="font-helvetica text-sm leading-relaxed line-clamp-2 text-ash-gray-600"
+                        className="font-helvetica text-xs sm:text-sm leading-relaxed line-clamp-2 text-gray-600 mobile-card-description"
                       >
                         {product.description}
                       </p>
                     </div>
                     
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <span 
-                          className="font-playfair text-3xl font-bold text-neutral-900"
-                        >
-                          ${product.price}
-                        </span>
-                        <span className="text-xs text-neutral-400 font-medium">USD</span>
-                      </div>
-                      
-                      {/* Rating stars placeholder */}
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <svg key={i} className="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                            <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                          </svg>
-                        ))}
-                      </div>
+
+                    
+                    {/* Price */}
+                    <div className="flex items-baseline gap-1 sm:gap-2">
+                      <span 
+                        className="font-playfair text-lg sm:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mobile-card-price"
+                      >
+                        AED {product.price}
+                      </span>
+                      <span className="text-xs sm:text-sm text-gray-400 font-medium">AED</span>
                     </div>
                     
-                    <div className="flex gap-3">
-                      <Link
-                        to={`/product/${product.id}`}
-                        className="flex-1 font-helvetica px-6 py-3 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 transition-all duration-300 text-center font-bold uppercase tracking-wide border border-neutral-300"
-                      >
-                        VIEW PRODUCT
-                      </Link>
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className="flex-1 font-helvetica px-6 py-3 bg-neutral-900 text-neutral-50 hover:bg-neutral-800 transition-all duration-300 font-bold uppercase tracking-wide shadow-lg transform hover:scale-105 hover:shadow-xl"
-                      >
-                        ADD TO CART
-                      </button>
-                    </div>
+                    {/* Action button */}
+                     <div className="pt-2">
+                       <button
+                         onClick={(e) => {
+                           e.preventDefault();
+                           e.stopPropagation();
+                           handleAddToCart(product);
+                         }}
+                         className="w-full font-helvetica px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 bg-gradient-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 text-white transition-all duration-400 font-bold text-xs sm:text-sm uppercase tracking-wide shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95 rounded-xl mobile-card-button flex items-center justify-center gap-1 sm:gap-2"
+                         title="Add to Cart"
+                       >
+                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 11-4 0v-6m4 0V9a2 2 0 10-4 0v4.01" />
+                         </svg>
+                         <span className="hidden sm:inline">ADD TO CART</span>
+                       </button>
+                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
@@ -575,7 +591,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* About Section */}
-      <section className="px-0 relative overflow-hidden" style={{ background: '#FEFEFE' }}>
+      <section className="py-16 sm:py-20 lg:py-24 relative overflow-hidden" style={{ background: '#FEFEFE' }}>
         {/* Floating background elements */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-24 h-24 bg-gradient-to-br from-neutral-200/30 to-gray-300/30 blur-lg animate-float" style={{ animationDelay: '0s' }}></div>
@@ -583,9 +599,9 @@ const Home: React.FC = () => {
           <div className="absolute top-1/2 right-1/4 w-20 h-20 bg-gradient-to-br from-slate-200/25 to-gray-200/25 blur-lg animate-float" style={{ animationDelay: '1s' }}></div>
         </div>
         
-        <div className="w-full relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 items-center">
-            <div className="px-4 sm:px-6 lg:px-8 scroll-reveal">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="scroll-reveal">
               <h2 
                 className="font-playfair text-4xl sm:text-5xl lg:text-7xl font-bold mb-6 text-neutral-900 leading-tight"
               >
@@ -653,12 +669,11 @@ const Home: React.FC = () => {
               </div>
             </div>
             
-            <div className="relative scroll-reveal hover-lift" style={{ animationDelay: '0.4s' }}>
+            <div className="relative scroll-reveal hover-lift mt-8 lg:mt-0" style={{ animationDelay: '0.4s' }}>
               <img 
                 src="/aboutpage.jpeg" 
-
                 alt="BYTEFIT - Urban Fashion" 
-                className="w-full h-auto object-cover transition-all duration-500"
+                className="w-full h-auto object-cover transition-all duration-500 rounded-lg"
                 style={{ 
                   boxShadow: '0 10px 30px rgba(10, 10, 10, 0.1)'
                 }}
@@ -668,7 +683,7 @@ const Home: React.FC = () => {
                 }}
               />
               {/* Image overlay effect */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
             </div>
           </div>
         </div>

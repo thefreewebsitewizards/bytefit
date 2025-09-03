@@ -6,14 +6,15 @@ import { useAuth } from '../context/AuthContext';
 import StripeCheckout from '../components/StripeCheckout';
 import ShippingSelector from '../components/ShippingSelector';
 import { ShippingRate } from '../services/clientShipping';
+import { STRIPE_CONFIG } from '../config/stripe';
 
 const Cart: React.FC = () => {
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, removeItem } = useCart();
   const { currentUser } = useAuth();
   const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null);
   
   // Calculate total including shipping
-  const shippingCost = selectedShippingRate ? selectedShippingRate.amount / 100 : 0;
+  const shippingCost = selectedShippingRate ? (selectedShippingRate.fixed_amount?.amount ?? selectedShippingRate.amount ?? 0) / 100 : 0;
   const finalTotal = total + shippingCost;
 
   const handleStripeSuccess = async () => {
@@ -159,33 +160,38 @@ const Cart: React.FC = () => {
               </div>
             
               {/* Cart Items List */}
-              <div className="space-y-4">
+              <div className="space-y-6">
                 {items.map((item, index) => (
                   <div 
                     key={item.id} 
-                    className="group bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-300"
+                    className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg hover:border-gray-300 transition-all duration-300"
                   >
-                    <div className="flex flex-col sm:flex-row gap-6">
+                    <div className="flex flex-col sm:flex-row gap-6 items-start">
                       {/* Product Image */}
-                      <div className="relative">
-                        <div className="w-full sm:w-24 h-32 sm:h-24 overflow-hidden rounded-md bg-gray-100">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-full sm:w-32 md:w-40 h-40 sm:h-32 md:h-40 overflow-hidden rounded-lg bg-gray-100 shadow-sm">
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                           />
                         </div>
                       </div>
                     
                       {/* Product Info */}
-                      <div className="flex-1 flex flex-col justify-between">
+                      <div className="flex-1 flex flex-col justify-between min-h-[120px]">
                         <div>
-                          <h3 className="font-patrick-hand-sc text-xl font-bold mb-1 text-gray-900">
+                          <h3 className="font-patrick-hand-sc text-xl font-bold mb-2 text-gray-900 leading-tight">
                             {item.name}
                           </h3>
-                          <p className="font-patrick-hand text-slate-600 mb-3 text-sm">
+                          <p className="font-patrick-hand text-slate-600 mb-2 text-sm">
                             Original Watercolor on Premium Paper
                           </p>
+                          {item.size && (
+                            <p className="font-patrick-hand text-slate-700 mb-4 text-sm font-medium bg-slate-100 inline-block px-2 py-1 rounded">
+                              Size: {item.size.toUpperCase()}
+                            </p>
+                          )}
                           
                           {/* Value proposition */}
                           <div className="flex flex-wrap gap-2 mb-3">
@@ -204,17 +210,28 @@ const Cart: React.FC = () => {
                           </div>
                         </div>
                         
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-2xl text-gray-900">
-                              ${item.price.toFixed(2)}
+                        <div className="flex items-center justify-between mt-4">
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-patrick-hand-sc text-2xl font-bold text-gray-900">
+                              AED {item.price.toFixed(2)}
                             </span>
-                            <span className="text-sm text-slate-500">USD</span>
                           </div>
                           
-                          <div className="flex items-center gap-2 bg-green-50 px-2 py-1 rounded">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span className="font-patrick-hand text-green-700 text-xs font-medium">In Stock</span>
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 bg-green-50 px-2 py-1 rounded">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="font-patrick-hand text-green-700 text-xs font-medium">In Stock</span>
+                            </div>
+                            
+                            <button
+                              onClick={() => removeItem(item.id, item.size)}
+                              className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all duration-200"
+                              title="Remove from cart"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -226,7 +243,7 @@ const Cart: React.FC = () => {
 
             {/* Order Summary */}
             <div className="lg:sticky lg:top-8">
-              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+              <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6 shadow-sm">
               
                 {/* Order Header */}
                 <div>
@@ -242,6 +259,7 @@ const Cart: React.FC = () => {
                 <div className="border-t border-gray-200 pt-6">
                   <ShippingSelector
                     orderTotal={total}
+                    connectedAccountId={STRIPE_CONFIG.connectedAccountId}
                     onShippingSelect={setSelectedShippingRate}
                     selectedShippingRate={selectedShippingRate}
                   />
@@ -249,12 +267,12 @@ const Cart: React.FC = () => {
 
                  {/* Price Breakdown */}
                  <div className="border-t border-gray-200 pt-6">
-                   <div className="space-y-3 mb-6">
-                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                   <div className="space-y-4 mb-6">
+                     <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                        <span className="font-patrick-hand font-medium text-slate-700">Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})</span>
-                       <span className="font-patrick-hand-sc font-bold text-slate-900">${total.toFixed(2)}</span>
+                       <span className="font-patrick-hand-sc font-bold text-slate-900">AED {total.toFixed(2)}</span>
                      </div>
-                     <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
+                     <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                        <div className="flex flex-col">
                          <span className="font-patrick-hand font-medium text-slate-700">Shipping & Handling</span>
                          {selectedShippingRate && (
@@ -266,20 +284,20 @@ const Cart: React.FC = () => {
                        <div className="flex items-center space-x-2">
                          {selectedShippingRate ? (
                            <span className={`font-patrick-hand-sc font-bold ${
-                             selectedShippingRate.amount === 0 ? 'text-green-600' : 'text-slate-900'
+                             (selectedShippingRate.fixed_amount?.amount ?? selectedShippingRate.amount ?? 0) === 0 ? 'text-green-600' : 'text-slate-900'
                            }`}>
-                             {selectedShippingRate.amount === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}
+                             {(selectedShippingRate.fixed_amount?.amount ?? selectedShippingRate.amount ?? 0) === 0 ? 'Free' : `AED ${shippingCost.toFixed(2)}`}
                            </span>
                          ) : (
                            <span className="font-patrick-hand-sc font-bold text-slate-900">Select shipping option</span>
                          )}
                        </div>
                      </div>
-                     <div className="border-t border-gray-200 pt-3">
+                     <div className="border-t border-gray-300 pt-4 bg-slate-50 p-4 rounded-lg">
                        <div className="flex justify-between items-center">
                          <span className="font-patrick-hand-sc text-xl font-bold text-slate-900">Total</span>
                          <span className="font-patrick-hand-sc text-2xl font-bold text-gray-900">
-                           ${finalTotal.toFixed(2)}
+                           AED {finalTotal.toFixed(2)}
                          </span>
                        </div>
                      </div>

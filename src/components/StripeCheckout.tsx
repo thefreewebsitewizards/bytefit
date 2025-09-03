@@ -3,6 +3,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { ShippingRate } from '../services/clientShipping';
+import { createCheckoutSession } from '../services/stripe';
+import { STRIPE_CONFIG } from '../config/stripe';
 
 interface StripeCheckoutProps {
   onSuccess?: () => void;
@@ -25,30 +27,40 @@ const StripeCheckout: React.FC<StripeCheckoutProps> = ({ onSuccess, onCancel, di
     
     if (items.length === 0) {
       console.log('❌ No items in cart, aborting checkout');
+      toast.error('Your cart is empty');
       return;
     }
 
-    // Stripe functionality is disabled for this project
-    toast.info('Checkout is currently disabled');
-    console.log('💳 Stripe checkout is disabled for this project');
+    setLoading(true);
     
-    // Simulate successful checkout for demo
-    setTimeout(() => {
-      onSuccess?.();
-      toast.success('🎉 Demo checkout completed! (No actual payment processed)');
-    }, 1000);
+    try {
+      // Create checkout session with Stripe Connect
+      const session = await createCheckoutSession({
+        items,
+        customerEmail: currentUser?.email || 'guest@example.com',
+        connectedAccountId: STRIPE_CONFIG.connectedAccountId,
+        successUrl: `${window.location.origin}/order-confirmation?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/cart`,
+        shippingCost: selectedShippingRate ? (selectedShippingRate.fixed_amount?.amount || selectedShippingRate.amount || 0) / 100 : undefined,
+        shippingName: selectedShippingRate?.display_name,
+      });
+
+      if (session.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = session.url;
+      } else {
+        throw new Error('No checkout URL received from Stripe');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to initialize checkout. Please try again.');
+      setLoading(false);
+    }
   };
 
   const handlePayment = async () => {
-    setLoading(true);
-    try {
-      // Create a new checkout session and redirect to Stripe
-      await handleCheckout();
-    } catch (error) {
-      console.error('Payment initialization failed:', error);
-      toast.error('Failed to start payment process. Please try again.');
-      setLoading(false);
-    }
+    // handleCheckout now manages loading state internally
+    await handleCheckout();
   };
 
   if (items.length === 0) {

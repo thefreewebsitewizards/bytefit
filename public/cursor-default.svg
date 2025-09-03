@@ -1,0 +1,16 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1" stdDeviation="1" flood-color="rgba(0,0,0,0.3)"/>
+    </filter>
+  </defs>
+  
+  <!-- Main cursor body -->
+  <path d="M2 2L22 12L12 14L8 22L2 2Z" fill="#1a1a1a" stroke="#ffffff" stroke-width="1" filter="url(#shadow)"/>
+  
+  <!-- Inner accent -->
+  <path d="M4 4L18 11L11 12.5L8 18L4 4Z" fill="#2d2d2d"/>
+  
+  <!-- Brand accent dot -->
+  <circle cx="7" cy="7" r="1.5" fill="#e45c06" opacity="0.8"/>
+</svg>

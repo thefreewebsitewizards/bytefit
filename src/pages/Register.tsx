@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { validateEmail, validatePassword, validatePasswordConfirmation, validateName, validateForm } from '../utils/validationUtils';
 
 const Register: React.FC = () => {
   const [name, setName] = useState('');
@@ -18,13 +19,16 @@ const Register: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    // Validate form fields
+    const validation = validateForm([
+      validateName(name),
+      validateEmail(email),
+      validatePassword(password),
+      validatePasswordConfirmation(password, confirmPassword)
+    ]);
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
+    if (!validation.isValid) {
+      setError(validation.error || 'Validation failed');
       return;
     }
 

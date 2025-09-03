@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { getAllProducts, addProduct, updateProduct, deleteProduct, Product, updateOrderStatus, uploadProductImage, uploadProductImages, getAllCategories, addCategory, updateCategory, deleteCategory, Category } from '../services/firebase';
+import { getAllProducts, addProduct, updateProduct, deleteProduct, Product, updateOrderStatus, uploadProductImage, uploadProductImages, getAllCategories, addCategory, updateCategory, deleteCategory, Category, getAllSizes, addSize, updateSize, deleteSize, Size } from '../services/firebase';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import { formatFirestoreDate } from '../utils/dateUtils';
 
 interface DashboardStats {
   totalProducts: number;
@@ -34,6 +35,7 @@ interface Order {
 }
 
 const Admin: React.FC = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
@@ -54,7 +56,8 @@ const Admin: React.FC = () => {
     description: '',
     price: '',
     category: '',
-    image: ''
+    image: '',
+    sizes: [] as string[]
   });
   const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -66,6 +69,17 @@ const Admin: React.FC = () => {
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [categoryForm, setCategoryForm] = useState({
+    name: '',
+    description: '',
+    slug: '',
+    isActive: true
+  });
+
+  // Size management state
+  const [sizes, setSizes] = useState<Size[]>([]);
+  const [showAddSize, setShowAddSize] = useState(false);
+  const [editingSize, setEditingSize] = useState<Size | null>(null);
+  const [sizeForm, setSizeForm] = useState({
     name: '',
     description: '',
     slug: '',
@@ -108,7 +122,7 @@ const Admin: React.FC = () => {
       
       await addProduct(productData);
       setShowAddProduct(false);
-      setProductForm({ name: '', description: '', price: '', category: '', image: '' });
+      setProductForm({ name: '', description: '', price: '', category: '', image: '', sizes: [] });
       setSelectedImageFiles([]);
       setImagePreviews([]);
       loadDashboardData(); // Refresh data
@@ -128,7 +142,8 @@ const Admin: React.FC = () => {
       description: product.description || '',
       price: product.price.toString(),
       category: product.category,
-      image: product.image || ''
+      image: product.image || '',
+      sizes: product.sizes || []
     });
     setSelectedImageFiles([]);
     setImagePreviews([]);
@@ -235,7 +250,7 @@ const Admin: React.FC = () => {
       await updateProduct(editingProduct.id, productData);
       setShowAddProduct(false);
       setEditingProduct(null);
-      setProductForm({ name: '', description: '', price: '', category: '', image: '' });
+      setProductForm({ name: '', description: '', price: '', category: '', image: '', sizes: [] });
       setSelectedImageFiles([]);
       setImagePreviews([]);
       setExistingImages([]);
@@ -362,35 +377,125 @@ const Admin: React.FC = () => {
     }
   };
 
+  // Size management functions
+  const handleAddSize = async () => {
+    try {
+      const slug = generateSlug(sizeForm.name);
+      const sizeData = {
+        ...sizeForm,
+        slug
+      };
+      
+      await addSize(sizeData);
+      setShowAddSize(false);
+      setSizeForm({ name: '', description: '', slug: '', isActive: true });
+      loadDashboardData(); // Refresh data
+      toast.success(`✅ Size "${sizeForm.name}" added successfully!`);
+    } catch (error) {
+      console.error('Error adding size:', error);
+      toast.error('❌ Failed to add size. Please try again.');
+    }
+  };
+
+  const handleEditSize = (size: Size) => {
+    setEditingSize(size);
+    setSizeForm({
+      name: size.name,
+      description: size.description || '',
+      slug: size.slug,
+      isActive: size.isActive
+    });
+    setShowAddSize(true);
+  };
+
+  const handleUpdateSize = async () => {
+    if (!editingSize) return;
+    
+    try {
+      const slug = generateSlug(sizeForm.name);
+      const sizeData = {
+        ...sizeForm,
+        slug
+      };
+      
+      await updateSize(editingSize.id!, sizeData);
+      setShowAddSize(false);
+      setEditingSize(null);
+      setSizeForm({ name: '', description: '', slug: '', isActive: true });
+      loadDashboardData(); // Refresh data
+      toast.success(`✅ Size "${sizeForm.name}" updated successfully!`);
+    } catch (error) {
+      console.error('Error updating size:', error);
+      toast.error('❌ Failed to update size. Please try again.');
+    }
+  };
+
+  const handleDeleteSize = async (sizeId: string) => {
+    const size = sizes.find(s => s.id === sizeId);
+    if (window.confirm('Are you sure you want to delete this size? This action cannot be undone.')) {
+      try {
+        await deleteSize(sizeId);
+        loadDashboardData(); // Refresh data
+        toast.success(`🗑️ Size "${size?.name || 'Unknown'}" deleted successfully!`);
+      } catch (error) {
+        console.error('Error deleting size:', error);
+        toast.error('❌ Failed to delete size. Please try again.');
+      }
+    }
+  };
+
+  const handleSizeSubmit = () => {
+    if (editingSize) {
+      handleUpdateSize();
+    } else {
+      handleAddSize();
+    }
+  };
+
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Loading dashboard data...');
       
       // Load products
+      console.log('📦 Loading products...');
       const productsData = await getAllProducts();
+      console.log('✅ Products loaded:', productsData.length);
       setProducts(productsData);
       
       // Load customers
+      console.log('👥 Loading customers...');
       const customersQuery = query(collection(db, 'Users'));
       const customersSnapshot = await getDocs(customersQuery);
       const customersData = customersSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Customer[];
+      console.log('✅ Customers loaded:', customersData.length);
       setCustomers(customersData);
       
       // Load orders
+      console.log('🛒 Loading orders...');
       const ordersQuery = query(collection(db, 'orders'));
       const ordersSnapshot = await getDocs(ordersQuery);
       const ordersData = ordersSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Order[];
+      console.log('✅ Orders loaded:', ordersData.length);
       setOrders(ordersData);
       
       // Load categories
+      console.log('🏷️ Loading categories...');
       const categoriesData = await getAllCategories();
+      console.log('✅ Categories loaded:', categoriesData.length, categoriesData);
       setCategories(categoriesData);
+      
+      // Load sizes
+      console.log('📏 Loading sizes...');
+      const sizesData = await getAllSizes();
+      console.log('✅ Sizes loaded:', sizesData.length, sizesData);
+      setSizes(sizesData);
       
       // Calculate stats
       const totalRevenue = ordersData.reduce((sum, order) => sum + (order.total || 0), 0);
@@ -401,8 +506,10 @@ const Admin: React.FC = () => {
         totalRevenue: totalRevenue
       });
       
+      console.log('✅ Dashboard data loaded successfully');
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      console.error('❌ Error loading dashboard data:', error);
+      toast.error('Failed to load dashboard data. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -412,6 +519,7 @@ const Admin: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard', icon: 'fas fa-tachometer-alt' },
     { id: 'products', label: 'Products', icon: 'fas fa-box' },
     { id: 'categories', label: 'Categories', icon: 'fas fa-tags' },
+    { id: 'sizes', label: 'Sizes', icon: 'fas fa-ruler-combined' },
     { id: 'orders', label: 'Orders', icon: 'fas fa-shopping-cart' },
     { id: 'customers', label: 'Customers', icon: 'fas fa-users' },
     { id: 'analytics', label: 'Analytics', icon: 'fas fa-chart-bar' }
@@ -460,10 +568,10 @@ const Admin: React.FC = () => {
         <div className="bg-white shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center">
               <div className="w-12 h-12 bg-black flex items-center justify-center text-white mr-4">
-                <i className="fas fa-dollar-sign text-lg"></i>
+                <i className="fas fa-coins text-lg"></i>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">{loading ? '...' : `$${stats.totalRevenue.toLocaleString()}`}</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{loading ? '...' : `AED ${stats.totalRevenue.toLocaleString()}`}</h3>
                 <p className="text-gray-600 text-sm">Total Revenue</p>
               </div>
             </div>
@@ -489,10 +597,10 @@ const Admin: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-gray-800 font-medium">New order received</p>
-                    <p className="text-gray-600 text-sm">Order #{order.id?.slice(-8) || 'N/A'} - ${order.total?.toFixed(2) || '0.00'}</p>
+                    <p className="text-gray-600 text-sm">Order #{order.id?.slice(-8) || 'N/A'} - AED {order.total?.toFixed(2) || '0.00'}</p>
                   </div>
                   <span className="ml-auto text-gray-500 text-sm">
-                    {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                    {formatFirestoreDate(order.createdAt)}
                   </span>
                 </div>
               ))}
@@ -505,10 +613,10 @@ const Admin: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-gray-800 font-medium">Product available</p>
-                    <p className="text-gray-600 text-sm">{product.name} - ${product.price}</p>
+                    <p className="text-gray-600 text-sm">{product.name} - AED {product.price}</p>
                   </div>
                   <span className="ml-auto text-gray-500 text-sm">
-                    ${product.price}
+                    AED {product.price}
                   </span>
                 </div>
               ))}
@@ -591,7 +699,7 @@ const Admin: React.FC = () => {
                         <h4 className="font-semibold text-black truncate">{product.name}</h4>
                         <p className="text-sm text-gray-500 mb-2">{product.category}</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                          <span className="text-lg font-bold text-gray-900">AED {product.price}</span>
                         </div>
                         <div className="flex space-x-3 mt-3">
                           <button 
@@ -650,7 +758,7 @@ const Admin: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                        <span className="text-lg font-bold text-gray-900">AED {product.price}</span>
                       </td>
 
                       <td className="py-4 px-6">
@@ -717,7 +825,11 @@ const Admin: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50 transition-colors duration-150">
+                    <tr 
+                      key={order.id} 
+                      className="hover:bg-gray-50 transition-colors duration-150 cursor-pointer"
+                      onClick={() => navigate(`/admin/order/${order.id}`)}
+                    >
                       <td className="py-4 px-6">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-black flex items-center justify-center mr-3 rounded">
@@ -735,7 +847,7 @@ const Admin: React.FC = () => {
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-600">
-                        {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                        {formatFirestoreDate(order.createdAt)}
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium bg-black text-white rounded">
@@ -743,12 +855,13 @@ const Admin: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <span className="text-lg font-bold text-gray-900">${order.total?.toFixed(2) || '0.00'}</span>
+                        <span className="text-lg font-bold text-gray-900">AED {order.total?.toFixed(2) || '0.00'}</span>
                       </td>
                       <td className="py-4 px-6">
                         <select
                           value={order.status || 'pending'}
                           onChange={(e) => handleOrderStatusUpdate(order.id, e.target.value as Order['status'])}
+                          onClick={(e) => e.stopPropagation()}
                           className={`px-3 py-2 text-sm font-medium border-2 rounded focus:outline-none focus:ring-2 focus:ring-black transition-all duration-200 ${
                             order.status === 'delivered' ? 'bg-green-50 text-green-800 border-green-200' :
                             order.status === 'shipped' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' :
@@ -776,7 +889,11 @@ const Admin: React.FC = () => {
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-4 p-4">
               {orders.map((order) => (
-                <div key={order.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                <div 
+                  key={order.id} 
+                  className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow duration-150"
+                  onClick={() => navigate(`/admin/order/${order.id}`)}
+                >
                   <div className="flex items-start space-x-4">
                     <div className="w-12 h-12 bg-black flex items-center justify-center rounded-lg flex-shrink-0">
                       <i className="fas fa-receipt text-white"></i>
@@ -787,11 +904,11 @@ const Admin: React.FC = () => {
                           <h4 className="font-semibold text-gray-900">Order #{order.id?.slice(-8) || 'N/A'}</h4>
                           <p className="text-sm text-gray-500 truncate">{order.customerEmail || 'N/A'}</p>
                           <p className="text-xs text-gray-400 mt-1">
-                            {order.createdAt ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                            {formatFirestoreDate(order.createdAt)}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-lg font-bold text-gray-900">${order.total?.toFixed(2) || '0.00'}</p>
+                          <p className="text-lg font-bold text-gray-900">AED {order.total?.toFixed(2) || '0.00'}</p>
                           <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-black text-white rounded">
                             {order.items?.length || 0} items
                           </span>
@@ -801,6 +918,7 @@ const Admin: React.FC = () => {
                         <select
                           value={order.status || 'pending'}
                           onChange={(e) => handleOrderStatusUpdate(order.id, e.target.value as Order['status'])}
+                          onClick={(e) => e.stopPropagation()}
                           className={`w-full px-3 py-2 text-sm font-medium border-2 rounded focus:outline-none focus:ring-2 focus:ring-black transition-all duration-200 ${
                             order.status === 'delivered' ? 'bg-green-50 text-green-800 border-green-200' :
                             order.status === 'shipped' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' :
@@ -899,7 +1017,7 @@ const Admin: React.FC = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6 text-gray-600">
-                              {customer.createdAt ? new Date(customer.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                              {formatFirestoreDate(customer.createdAt)}
                             </td>
                             <td className="py-4 px-6">
                               <span className="px-2 py-1 text-xs font-medium bg-black text-white rounded">
@@ -947,8 +1065,8 @@ const Admin: React.FC = () => {
                                 </span>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {customer.createdAt ? new Date(customer.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
-                              </div>
+                      {formatFirestoreDate(customer.createdAt)}
+                    </div>
                             </div>
                           </div>
                         </div>
@@ -1039,7 +1157,7 @@ const Admin: React.FC = () => {
                               </span>
                             </td>
                             <td className="py-4 px-6 text-gray-600">
-                              {category.createdAt ? new Date(category.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                              {formatFirestoreDate(category.createdAt)}
                             </td>
                             <td className="py-4 px-6">
                               <div className="flex space-x-2">
@@ -1092,7 +1210,7 @@ const Admin: React.FC = () => {
                                   </span>
                                 </div>
                                 <p className="text-xs text-gray-400 mt-2">
-                                  Created: {category.createdAt ? new Date(category.createdAt.seconds * 1000).toLocaleDateString() : 'N/A'}
+                                  Created: {formatFirestoreDate(category.createdAt)}
                                 </p>
                               </div>
                             </div>
@@ -1108,6 +1226,233 @@ const Admin: React.FC = () => {
                                 onClick={() => handleDeleteCategory(category.id!)}
                                 className="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded hover:bg-red-50"
                                 title="Delete Category"
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )
+            }
+            </div>
+          </div>
+        );
+      case 'sizes':
+        return (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Size Management</h2>
+              <button
+                onClick={() => {
+                  setShowAddSize(true);
+                  setEditingSize(null);
+                  setSizeForm({ name: '', description: '', slug: '', isActive: true });
+                }}
+                className="bg-black text-white px-4 sm:px-6 py-2.5 sm:py-2 hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center gap-2 rounded-lg font-medium text-sm sm:text-base touch-manipulation"
+              >
+                <i className="fas fa-plus"></i>
+                <span>Add Size</span>
+              </button>
+            </div>
+
+            <div className="bg-white shadow-lg rounded-lg overflow-hidden">
+              {loading ? (
+                <div className="text-center py-12">
+                  <i className="fas fa-spinner fa-spin text-4xl text-gray-400 mb-4"></i>
+                  <p className="text-gray-500">Loading sizes...</p>
+                </div>
+              ) : sizes.length === 0 ? (
+                <div className="text-center py-12">
+                  <i className="fas fa-ruler-combined text-6xl text-gray-300 mb-4"></i>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Sizes Found</h3>
+                  <p className="text-gray-500">Create your first size to offer size options for your products.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Desktop Table - Hidden on mobile and tablet */}
+                  <div className="hidden xl:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b-2 border-gray-200">
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Size</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Description</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Slug</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Status</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Created</th>
+                          <th className="text-left py-4 px-6 font-semibold text-gray-700 uppercase tracking-wider text-sm">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {sizes.map((size) => (
+                          <tr key={size.id} className="hover:bg-gray-50 transition-colors duration-150">
+                            <td className="py-4 px-6">
+                              <div className="flex items-center">
+                                <div className="w-10 h-10 bg-black flex items-center justify-center mr-4 rounded">
+                                  <i className="fas fa-ruler-combined text-white text-sm"></i>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900">{size.name}</h4>
+                                  <p className="text-sm text-gray-500">ID: {size.id?.slice(-8) || 'N/A'}</p>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600 max-w-xs truncate">
+                              {size.description || 'No description'}
+                            </td>
+                            <td className="py-4 px-6">
+                              <code className="bg-gray-100 px-2 py-1 text-sm text-gray-800 rounded">{size.slug}</code>
+                            </td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-flex items-center px-3 py-1 text-sm font-medium border rounded ${
+                                size.isActive
+                                  ? 'bg-green-100 text-green-800 border-green-200'
+                                  : 'bg-red-100 text-red-800 border-red-200'
+                              }`}>
+                                <span className={`w-2 h-2 mr-2 rounded-full ${
+                                  size.isActive ? 'bg-green-400' : 'bg-red-400'
+                                }`}></span>
+                                {size.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600">
+                              {formatFirestoreDate(size.createdAt)}
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex space-x-2">
+                                <button
+                                  onClick={() => handleEditSize(size)}
+                                  className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-2 rounded hover:bg-blue-50"
+                                  title="Edit Size"
+                                >
+                                  <i className="fas fa-edit"></i>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSize(size.id!)}
+                                  className="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded hover:bg-red-50"
+                                  title="Delete Size"
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Tablet Table - Compact version for medium screens */}
+                  <div className="hidden lg:block xl:hidden overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 border-b-2 border-gray-200">
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-xs">Size</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-xs">Status</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-xs">Created</th>
+                          <th className="text-left py-3 px-4 font-semibold text-gray-700 uppercase tracking-wider text-xs">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {sizes.map((size) => (
+                          <tr key={size.id} className="hover:bg-gray-50 transition-colors duration-150">
+                            <td className="py-3 px-4">
+                              <div className="flex items-center">
+                                <div className="w-8 h-8 bg-black flex items-center justify-center mr-3 rounded">
+                                  <i className="fas fa-ruler-combined text-white text-xs"></i>
+                                </div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 text-sm">{size.name}</h4>
+                                  <p className="text-xs text-gray-500">{size.description || 'No description'}</p>
+                                  <code className="bg-gray-100 px-1 py-0.5 text-xs text-gray-800 rounded mt-1 inline-block">{size.slug}</code>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex items-center px-2 py-1 text-xs font-medium border rounded ${
+                                size.isActive
+                                  ? 'bg-green-100 text-green-800 border-green-200'
+                                  : 'bg-red-100 text-red-800 border-red-200'
+                              }`}>
+                                <span className={`w-1.5 h-1.5 mr-1 rounded-full ${
+                                  size.isActive ? 'bg-green-400' : 'bg-red-400'
+                                }`}></span>
+                                {size.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-gray-600 text-sm">
+                              {formatFirestoreDate(size.createdAt)}
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex space-x-1">
+                                <button
+                                  onClick={() => handleEditSize(size)}
+                                  className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1.5 rounded hover:bg-blue-50"
+                                  title="Edit Size"
+                                >
+                                  <i className="fas fa-edit text-sm"></i>
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteSize(size.id!)}
+                                  className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1.5 rounded hover:bg-red-50"
+                                  title="Delete Size"
+                                >
+                                  <i className="fas fa-trash text-sm"></i>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Mobile Cards - For small screens */}
+                  <div className="lg:hidden space-y-3 p-3 sm:p-4">
+                    {sizes.map((size) => (
+                      <div key={size.id} className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 shadow-sm">
+                        <div className="flex items-start space-x-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black flex items-center justify-center rounded-lg flex-shrink-0">
+                            <i className="fas fa-ruler-combined text-white text-sm"></i>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{size.name}</h4>
+                                <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2">{size.description || 'No description'}</p>
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  <code className="bg-gray-200 px-2 py-1 text-xs text-gray-800 rounded">{size.slug}</code>
+                                  <span className={`inline-flex items-center px-2 py-1 text-xs font-medium border rounded ${
+                                    size.isActive
+                                      ? 'bg-green-100 text-green-800 border-green-200'
+                                      : 'bg-red-100 text-red-800 border-red-200'
+                                  }`}>
+                                    <span className={`w-1.5 h-1.5 mr-1 rounded-full ${
+                                      size.isActive ? 'bg-green-400' : 'bg-red-400'
+                                    }`}></span>
+                                    {size.isActive ? 'Active' : 'Inactive'}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2">
+                                  Created: {formatFirestoreDate(size.createdAt)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex justify-end space-x-2 mt-3">
+                              <button
+                                onClick={() => handleEditSize(size)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-2 rounded hover:bg-blue-50 touch-manipulation"
+                                title="Edit Size"
+                              >
+                                <i className="fas fa-edit"></i>
+                              </button>
+                              <button
+                                onClick={() => handleDeleteSize(size.id!)}
+                                className="text-red-600 hover:text-red-800 transition-colors duration-200 p-2 rounded hover:bg-red-50 touch-manipulation"
+                                title="Delete Size"
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
@@ -1242,7 +1587,7 @@ const Admin: React.FC = () => {
                   onClick={() => {
                     setShowAddProduct(false);
                     setEditingProduct(null);
-                    setProductForm({ name: '', description: '', price: '', category: '', image: '' });
+                    setProductForm({ name: '', description: '', price: '', category: '', image: '', sizes: [] });
                     setSelectedImageFiles([]);
                     setImagePreviews([]);
                     setExistingImages([]);
@@ -1303,6 +1648,32 @@ const Admin: React.FC = () => {
                       </option>
                     ))}
                   </select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Available Sizes</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {sizes.filter(size => size.isActive).map((size) => (
+                      <label key={size.id} className="flex items-center space-x-2 p-2 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={productForm.sizes.includes(size.slug)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setProductForm({ ...productForm, sizes: [...productForm.sizes, size.slug] });
+                            } else {
+                              setProductForm({ ...productForm, sizes: productForm.sizes.filter(s => s !== size.slug) });
+                            }
+                          }}
+                          className="rounded border-gray-300 text-black focus:ring-black"
+                        />
+                        <span className="text-sm text-gray-700">{size.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {sizes.filter(size => size.isActive).length === 0 && (
+                    <p className="text-sm text-gray-500 mt-2">No active sizes available. Please add sizes first.</p>
+                  )}
                 </div>
                 
                 <div>
@@ -1408,7 +1779,7 @@ const Admin: React.FC = () => {
                     onClick={() => {
                       setShowAddProduct(false);
                       setEditingProduct(null);
-                      setProductForm({ name: '', description: '', price: '', category: '', image: '' });
+                      setProductForm({ name: '', description: '', price: '', category: '', image: '', sizes: [] });
                       setSelectedImageFiles([]);
                       setImagePreviews([]);
                       setExistingImages([]);
@@ -1531,6 +1902,102 @@ const Admin: React.FC = () => {
                     className="flex-1 px-4 py-3 sm:py-2 bg-black text-white hover:bg-gray-800 rounded-lg transition-all duration-200 touch-manipulation font-medium"
                   >
                     {editingCategory ? 'Update Category' : 'Add Category'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Size Form Modal */}
+      {showAddSize && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white border border-gray-300 shadow-2xl w-full max-w-md sm:max-w-lg max-h-[95vh] sm:max-h-[90vh] overflow-y-auto scrollbar-hide rounded-lg" style={{scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                  {editingSize ? 'Edit Size' : 'Add New Size'}
+                </h3>
+                <button
+                  onClick={() => {
+                    setShowAddSize(false);
+                    setEditingSize(null);
+                    setSizeForm({ name: '', description: '', slug: '', isActive: true });
+                  }}
+                  className="text-gray-500 hover:text-gray-700 p-2 hover:bg-gray-100 rounded-lg transition-all duration-200 touch-manipulation"
+                >
+                  <i className="fas fa-times text-lg sm:text-xl"></i>
+                </button>
+              </div>
+              
+              <form onSubmit={(e) => { e.preventDefault(); handleSizeSubmit(); }} className="space-y-3 sm:space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Size Name</label>
+                  <input
+                    type="text"
+                    value={sizeForm.name}
+                    onChange={(e) => setSizeForm({ ...sizeForm, name: e.target.value })}
+                    className="w-full px-3 py-3 sm:py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-black focus:border-black text-base sm:text-sm"
+                    placeholder="e.g., Small, Medium, Large, XL"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                  <textarea
+                    value={sizeForm.description}
+                    onChange={(e) => setSizeForm({ ...sizeForm, description: e.target.value })}
+                    className="w-full px-3 py-3 sm:py-2 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-black focus:border-black text-base sm:text-sm"
+                    rows={3}
+                    placeholder="Brief description of this size..."
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
+                  <input
+                    type="text"
+                    value={sizeForm.slug || generateSlug(sizeForm.name)}
+                    onChange={(e) => setSizeForm({ ...sizeForm, slug: e.target.value })}
+                    className="w-full px-3 py-3 sm:py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700 focus:ring-2 focus:ring-black focus:border-black text-base sm:text-sm"
+                    placeholder="auto-generated-from-name"
+                    readOnly
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Auto-generated from size name</p>
+                </div>
+                
+                <div>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={sizeForm.isActive}
+                      onChange={(e) => setSizeForm({ ...sizeForm, isActive: e.target.checked })}
+                      className="w-4 h-4 text-black bg-gray-100 border-gray-300 focus:ring-black focus:ring-2"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Active Size</span>
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">Only active sizes will be available for products</p>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddSize(false);
+                      setEditingSize(null);
+                      setSizeForm({ name: '', description: '', slug: '', isActive: true });
+                    }}
+                    className="flex-1 px-4 py-3 sm:py-2 bg-gray-200 border border-gray-300 text-gray-700 hover:bg-gray-300 rounded-lg transition-all duration-200 touch-manipulation font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 px-4 py-3 sm:py-2 bg-black text-white hover:bg-gray-800 rounded-lg transition-all duration-200 touch-manipulation font-medium"
+                  >
+                    {editingSize ? 'Update Size' : 'Add Size'}
                   </button>
                 </div>
               </form>

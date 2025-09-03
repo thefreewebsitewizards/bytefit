@@ -2,8 +2,9 @@
 // This file handles all Stripe-related operations through our backend API
 
 import { CartItem } from './firebase';
+import { STRIPE_CONFIG } from '../config/stripe';
 
-// Firebase Functions API base URL
+// Firebase Functions API base URL - using local emulator for testing
 const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'https://us-central1-bytefit-v2.cloudfunctions.net';
 
 // Types for Stripe integration
@@ -13,7 +14,9 @@ export interface CheckoutSessionData {
   connectedAccountId?: string; // Made optional to support direct payments
   successUrl: string;
   cancelUrl: string;
-  selectedShippingRateId?: string;
+  selectedShippingRateId?: string; // Deprecated - use shippingCost instead
+  shippingCost?: number;
+  shippingName?: string;
 }
 
 export interface StripeCheckoutSession {
@@ -42,8 +45,9 @@ export const createCheckoutSession = async (data: CheckoutSessionData): Promise<
           imageUrl: item.imageUrl
         })),
         customerEmail: data.customerEmail,
-        ...(data.connectedAccountId && { connectedAccountId: data.connectedAccountId }),
-        ...(data.selectedShippingRateId && { selectedShippingRateId: data.selectedShippingRateId }),
+        connectedAccountId: data.connectedAccountId || STRIPE_CONFIG.connectedAccountId,
+        ...(data.shippingCost && { shippingCost: data.shippingCost }),
+        ...(data.shippingName && { shippingName: data.shippingName }),
         successUrl: data.successUrl,
         cancelUrl: data.cancelUrl,
         metadata: {
@@ -67,6 +71,37 @@ export const createCheckoutSession = async (data: CheckoutSessionData): Promise<
     };
   } catch (error) {
     console.error('Error creating checkout session:', error);
+    throw error;
+  }
+};
+
+// Create order from Stripe session after successful payment
+export const createOrderFromStripeSession = async (data: {
+  sessionId: string;
+  userId?: string;
+  customerEmail?: string;
+}): Promise<any> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/createOrderFromPaymentId`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId: data.sessionId,
+        userId: data.userId,
+        customerEmail: data.customerEmail,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to create order from payment');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating order from Stripe session:', error);
     throw error;
   }
 };
@@ -106,7 +141,7 @@ export const createPaymentIntent = async (data: CheckoutSessionData): Promise<an
       },
       body: JSON.stringify({
         amount: totalAmount,
-        currency: 'usd',
+        currency: 'aed',
         customerEmail: data.customerEmail,
         connectedAccountId: data.connectedAccountId,
         metadata: {

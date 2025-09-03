@@ -51,6 +51,22 @@ select option:hover {
   animation-delay: 2s;
 }
 
+/* Brand logo gradient animation */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 50% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 
 body {
@@ -59,6 +75,208 @@ body {
   background-color: #fafafa;
   margin: 0;
   padding: 0;
+}
+
+/* Custom Toast Notifications Styling */
+.Toastify__toast-container {
+  width: auto;
+  max-width: 420px;
+  padding: 0;
+}
+
+/* Mobile positioning */
+@media (max-width: 768px) {
+  .Toastify__toast-container {
+    top: 80px !important;
+    right: 16px !important;
+    left: 16px !important;
+    width: calc(100% - 32px) !important;
+    max-width: none !important;
+  }
+}
+
+/* Tablet positioning */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .Toastify__toast-container {
+    top: 90px !important;
+    right: 24px !important;
+    max-width: 380px !important;
+  }
+}
+
+/* Desktop positioning */
+@media (min-width: 1025px) {
+  .Toastify__toast-container {
+    top: 100px !important;
+    right: 32px !important;
+    max-width: 420px !important;
+  }
+}
+
+.Toastify__toast {
+  background: white;
+  border: 2px solid #000;
+  border-radius: 0;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  font-family: 'Helvetica', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  min-height: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.Toastify__toast::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #000;
+}
+
+.Toastify__toast--success {
+  background: #f8fffe;
+  border-color: #000;
+}
+
+.Toastify__toast--success::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.Toastify__toast--error {
+  background: #fffbfb;
+  border-color: #000;
+}
+
+.Toastify__toast--error::before {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.Toastify__toast--info {
+  background: #fafbff;
+  border-color: #000;
+}
+
+.Toastify__toast--info::before {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.Toastify__toast--warning {
+  background: #fffcf5;
+  border-color: #000;
+}
+
+.Toastify__toast--warning::before {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+.Toastify__toast-body {
+  padding: 0;
+  margin: 0;
+  color: #1a1a1a;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.Toastify__close-button {
+  color: #666;
+  opacity: 0.7;
+  align-self: flex-start;
+  margin-top: -2px;
+  font-size: 18px;
+  font-weight: bold;
+  transition: all 0.2s ease;
+}
+
+.Toastify__close-button:hover {
+  color: #000;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.Toastify__progress-bar {
+  background: rgba(0, 0, 0, 0.1);
+  height: 2px;
+}
+
+.Toastify__progress-bar--success {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.Toastify__progress-bar--error {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.Toastify__progress-bar--info {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.Toastify__progress-bar--warning {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+}
+
+/* Custom animations */
+@keyframes toastSlideIn {
+  from {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes toastSlideOut {
+  from {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.Toastify__toast--default {
+  animation: toastSlideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.Toastify__toast--default.Toastify__toast--close {
+  animation: toastSlideOut 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .Toastify__toast {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+  
+  .Toastify__toast-body {
+    gap: 6px;
+  }
+  
+  @keyframes toastSlideInMobile {
+    from {
+      transform: translateY(-20px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .Toastify__toast--default {
+    animation: toastSlideInMobile 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -126,4 +344,495 @@ h1, h2, h3, h4, h5, h6 {
   outline: none;
   border-color: #f3760b;
   box-shadow: 0 0 0 2px rgba(243, 118, 11, 0.1);
+}
+
+/* Custom Cursor Styles - CSS Variables will be set by JavaScript */
+:root {
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --cursor-text: text;
+  --cursor-grab: grab;
+}
+
+* {
+  cursor: var(--cursor-default);
+}
+
+/* Interactive elements cursor */
+a, button, .btn-primary, .btn-secondary, [role="button"], .cursor-pointer {
+  cursor: var(--cursor-pointer) !important;
+}
+
+/* Text input cursor */
+input[type="text"], input[type="email"], input[type="password"], input[type="search"], 
+input[type="tel"], input[type="url"], textarea, [contenteditable], .input-field {
+  cursor: var(--cursor-text) !important;
+}
+
+/* Grab cursor for draggable elements */
+.draggable, [draggable="true"], .cursor-grab {
+  cursor: var(--cursor-grab) !important;
+}
+
+/* Smooth cursor transitions */
+body {
+  cursor: var(--cursor-default);
+  transition: cursor 0.1s ease;
+}
+
+/* Cursor animations */
+@keyframes cursor-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Special cursor effects for brand elements */
+.logo, .brand-element {
+  cursor: var(--cursor-pointer) !important;
+  transition: all 0.3s ease;
+}
+
+/* Disable cursor on disabled elements */
+[disabled], .disabled {
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+/* Advanced Cursor Effects */
+/* Hover effects for interactive elements */
+
+/* Enhanced Card Animations */
+@keyframes card-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.01);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Card Enhancement Classes */
+.hover-lift {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.hover-lift:hover {
+  transform: translateY(-12px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.8s ease-out;
+}
+
+/* Scroll Reveal Animation */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Enhanced Button Styles */
+.btn-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.btn-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-enhanced:hover::before {
+  left: 100%;
+}
+
+/* Responsive Card Grid Improvements */
+@media (max-width: 640px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .card-padding {
+    padding: 0.75rem;
+  }
+  
+  /* Mobile card text adjustments */
+  .mobile-card-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mobile-card-description {
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+  
+  .mobile-card-price {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  .mobile-card-button {
+     font-size: 0.75rem;
+     padding: 0.5rem 0.75rem;
+     letter-spacing: 0.05em;
+   }
+   
+   /* Mobile icon button optimizations */
+   .mobile-card-button svg {
+     width: 1rem;
+     height: 1rem;
+     flex-shrink: 0;
+   }
+   
+   .mobile-card-button .hidden {
+     display: none;
+   }
+   
+   /* Category bar enhancements */
+   .category-container {
+     padding: 0.75rem;
+   }
+   
+   .category-button {
+     min-width: fit-content;
+     white-space: nowrap;
+   }
+ }
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .category-container {
+    padding: 1rem;
+  }
+}
+
+/* Enhanced category button animations */
+.category-button:hover {
+  transform: translateY(-1px);
+}
+
+.category-button:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+/* Smooth scrolling for category overflow on mobile */
+.category-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .card-padding {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  
+  .card-padding {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2.5rem;
+  }
+  
+  .card-padding {
+    padding: 2rem;
+  }
+}
+
+/* Enhanced Card Hover Effects */
+.card-enhanced {
+  position: relative;
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 1.5rem;
+  overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.card-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.card-enhanced:hover::before {
+  opacity: 1;
+}
+
+.card-enhanced:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Image Enhancement */
+.image-enhanced {
+  transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.image-enhanced:hover {
+  transform: scale(1.1);
+}
+
+/* Text Animations */
+.text-gradient {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Loading States */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Badge Styles */
+.badge-premium {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+}
+
+.badge-featured {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Utility Classes */
+.backdrop-blur-custom {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .card-enhanced {
+    background: linear-gradient(145deg, #1f2937 0%, #111827 100%);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, #f9fafb 0%, #d1d5db 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+a:hover, button:hover, .btn-primary:hover, .btn-secondary:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Custom cursor for product cards */
+.product-card, .card {
+  cursor: var(--cursor-pointer) !important;
+  transition: all 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Cursor effects for navigation */
+nav a {
+  cursor: var(--cursor-pointer) !important;
+  position: relative;
+}
+
+nav a::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #e45c06, #f3760b);
+  transition: width 0.3s ease;
+}
+
+nav a:hover::after {
+  width: 100%;
+}
+
+/* Image hover effects */
+img {
+  cursor: var(--cursor-pointer);
+  transition: transform 0.3s ease;
+}
+
+img:hover {
+  transform: scale(1.02);
+}
+
+/* Form focus effects */
+.input-field:focus {
+  cursor: var(--cursor-text) !important;
+  transform: scale(1.01);
+  transition: all 0.2s ease;
+}
+
+/* Loading cursor */
+.loading {
+  cursor: wait !important;
+}
+
+/* Custom cursor for logo */
+.logo {
+  cursor: var(--cursor-pointer) !important;
+}
+
+.logo:hover {
+  animation: cursor-pulse 1s ease-in-out infinite;
+}
+
+/* Cursor trail effect (optional enhancement) */
+@media (prefers-reduced-motion: no-preference) {
+  .cursor-trail {
+    pointer-events: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(228, 92, 6, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: 9999;
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* Responsive cursor adjustments */
+@media (max-width: 768px) {
+  /* Disable custom cursors on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    * {
+      cursor: auto !important;
+    }
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    cursor: auto !important;
+  }
 }

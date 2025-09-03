@@ -320,8 +320,8 @@ export const getAccountStatusMessage = (account: ConnectedAccount): string => {
 };
 
 // Helper function to format currency amounts
-export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', {
+export const formatCurrency = (amount: number, currency: string = 'AED'): string => {
+  return new Intl.NumberFormat('en-AE', {
     style: 'currency',
     currency: currency.toUpperCase()
   }).format(amount / 100);

@@ -87,7 +87,7 @@ const ShippingRateManager: React.FC<ShippingRateManagerProps> = ({
                 <div>
                   <h4 className="font-medium text-gray-900">{rate.display_name}</h4>
                   <p className="text-sm text-gray-600">
-                    {formatShippingAmount(rate.amount, rate.currency)} • 
+                    {formatShippingAmount(rate)} • 
                     {formatDeliveryEstimate(rate.delivery_estimate)}
                   </p>
                   {rate.metadata?.description && (

@@ -43,29 +43,37 @@ const Header: React.FC = () => {
             {/* Business Name - Left */}
             <Link 
               to="/" 
-              className="flex items-center space-x-2 group transition-all duration-500 hover:scale-105"
+              className="flex items-center space-x-2 group transition-all duration-700 hover:scale-110"
             >
               <span 
-                className="font-playfair text-3xl font-bold transition-all duration-500 group-hover:text-gray-700 relative"
+                className="font-playfair text-4xl font-black transition-all duration-700 group-hover:text-gray-800 relative"
                 style={{ 
                   color: '#1a1a1a',
-                  letterSpacing: '0.05em',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+                  letterSpacing: '0.08em',
+                  textShadow: '0 4px 8px rgba(0,0,0,0.15), 0 2px 4px rgba(0,0,0,0.1)',
+                  background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 30%, #4a5568 60%, #1a1a1a 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text'
+                  backgroundClip: 'text',
+                  backgroundSize: '200% 200%',
+                  animation: 'gradient-shift 8s ease-in-out infinite'
                 }}
               >
                 BYTEFIT
                 <div 
-                  className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-gray-600 to-gray-800 transition-all duration-500 group-hover:w-full"
+                  className="absolute -bottom-2 left-0 w-0 h-1 bg-gradient-to-r from-gray-700 via-gray-900 to-gray-700 transition-all duration-700 group-hover:w-full rounded-full shadow-lg"
+                  style={{
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)'
+                  }}
+                ></div>
+                <div 
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-r from-gray-600 to-gray-800 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 animate-pulse"
                 ></div>
               </span>
             </Link>
 
             {/* Navigation Links - Center */}
-            <nav className="hidden lg:flex items-center space-x-8">
+            <nav className="hidden lg:flex items-center space-x-2">
               {[
                 { to: '/', label: 'Home' },
                 { to: '/gallery', label: 'Shop' },
@@ -75,23 +83,34 @@ const Header: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="relative text-base font-medium transition-all duration-300 hover:text-gray-900 px-4 py-2 rounded-lg group"
+                  className="relative font-helvetica text-sm font-semibold tracking-wide transition-all duration-500 px-6 py-3 rounded-full group overflow-hidden"
                   style={{ 
-                    color: '#4a5568',
-                    fontFamily: 'Helvetica, sans-serif',
-                    letterSpacing: '0.025em'
+                    color: '#2d3748',
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
+                    e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                    e.currentTarget.style.color = '#1a202c';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 100%)';
+                    e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.3)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.color = '#2d3748';
+                    e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
                   }}
                 >
-                  {item.label}
-                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-gray-600 to-gray-800 transition-all duration-300 group-hover:w-3/4 transform -translate-x-1/2"></div>
+                  <span className="relative z-10">{item.label}</span>
+                  <div className="absolute inset-0 bg-gradient-to-r from-gray-100 to-white opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
+                  <div className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-gradient-to-r from-gray-700 to-gray-900 transition-all duration-500 group-hover:w-full transform -translate-x-1/2 rounded-full"></div>
                 </Link>
               ))}
             </nav>
@@ -405,7 +424,7 @@ const Header: React.FC = () => {
               }}
             >
               {/* Navigation Links */}
-              <div className="space-y-1 px-4">
+              <div className="space-y-3 px-4">
                 {[
                   { to: '/', label: 'Home' },
                   { to: '/gallery', label: 'Shop' },
@@ -415,26 +434,36 @@ const Header: React.FC = () => {
                   <Link
                     key={item.to}
                     to={item.to}
-                    className="group flex items-center px-4 py-3 text-base font-medium transition-all duration-300 rounded-xl hover:bg-gradient-to-r hover:from-gray-50/80 hover:to-gray-100/80 relative overflow-hidden"
+                    className="group flex items-center px-6 py-4 font-helvetica text-base font-semibold tracking-wide transition-all duration-500 rounded-2xl relative overflow-hidden"
                     style={{ 
-                      color: '#4a5568', 
-                      fontFamily: 'Helvetica, sans-serif',
-                      fontWeight: '500',
-                      letterSpacing: '0.025em'
+                      color: '#2d3748',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.9) 100%)',
+                      backdropFilter: 'blur(15px)',
+                      border: '1px solid rgba(255,255,255,0.3)',
+                      boxShadow: '0 4px 15px rgba(0,0,0,0.08)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.08em'
                     }}
                     onClick={() => setIsMenuOpen(false)}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.color = '#1a1a1a';
-                      e.currentTarget.style.transform = 'translateX(4px)';
+                      e.currentTarget.style.color = '#1a202c';
+                      e.currentTarget.style.transform = 'translateX(8px) scale(1.02)';
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,1) 100%)';
+                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.4)';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = '#4a5568';
-                      e.currentTarget.style.transform = 'translateX(0)';
+                      e.currentTarget.style.color = '#2d3748';
+                      e.currentTarget.style.transform = 'translateX(0) scale(1)';
+                      e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(248,250,252,0.9) 100%)';
+                      e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.08)';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
                     }}
                   >
-                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-gray-400 to-gray-600 mr-4 group-hover:scale-125 transition-transform duration-300"></div>
-                    {item.label}
-                    <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-gray-400 to-gray-600 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top rounded-r"></div>
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-gray-500 to-gray-700 mr-4 group-hover:scale-125 group-hover:rotate-180 transition-all duration-500 shadow-lg"></div>
+                    <span className="relative z-10">{item.label}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white opacity-0 group-hover:opacity-30 transition-opacity duration-500"></div>
+                    <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-gray-600 to-gray-800 transform scale-y-0 group-hover:scale-y-100 transition-transform duration-500 origin-top rounded-r"></div>
                   </Link>
                 ))}
               </div>

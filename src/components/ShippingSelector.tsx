@@ -34,11 +34,20 @@ const ShippingSelector: React.FC<ShippingSelectorProps> = ({
         
         const response = await getCheckoutRates(connectedAccountId, orderTotal);
         setShippingRates(response.rates || []);
-        setQualifiesForFreeShipping(response.qualifies_for_free_shipping || false);
+        
+        // Check if any rate has amount 0 for free shipping
+        const hasFreeShipping = response.rates?.some(rate => {
+          const amount = rate.fixed_amount?.amount ?? rate.amount ?? 0;
+          return amount === 0;
+        }) || false;
+        setQualifiesForFreeShipping(hasFreeShipping);
         
         // Auto-select free shipping if available (only once)
         if (response.rates && response.rates.length > 0 && !hasAutoSelected.current) {
-          const freeShippingRate = response.rates.find(rate => rate.amount === 0);
+          const freeShippingRate = response.rates.find(rate => {
+            const amount = rate.fixed_amount?.amount ?? rate.amount ?? 0;
+            return amount === 0;
+          });
           if (freeShippingRate) {
             onShippingSelect(freeShippingRate);
             hasAutoSelected.current = true;
@@ -175,7 +184,7 @@ const ShippingSelector: React.FC<ShippingSelectorProps> = ({
               
               <div className="text-right">
                 <div className="font-patrick-hand-sc font-bold text-slate-800 text-sm">
-                  {rate.amount === 0 ? 'Free' : formatShippingAmount(rate.amount, rate.currency)}
+                  {(rate.fixed_amount?.amount ?? rate.amount ?? 0) === 0 ? 'Free' : formatShippingAmount(rate)}
                 </div>
               </div>
             </div>

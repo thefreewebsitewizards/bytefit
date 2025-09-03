@@ -24,6 +24,15 @@ import {
   deleteObject
 } from 'firebase/storage';
 import { auth, db, storage } from '../config/firebase';
+import {
+  getAllDocuments,
+  getDocumentsWithQuery,
+  getDocumentById,
+  addDocument,
+  updateDocument,
+  deleteDocument,
+  getDocumentByField
+} from '../utils/firebaseUtils';
 
 // Test Firebase connection
 export const testFirebaseConnection = async (): Promise<boolean> => {
@@ -46,6 +55,7 @@ export interface Product {
   category: string;
   image: string; // Keep for backward compatibility
   images?: string[]; // New field for multiple images
+  sizes?: string[]; // Array of size IDs that are available for this product
   createdAt?: Timestamp;
 }
 
@@ -53,6 +63,9 @@ export interface Order {
   id?: string;
   userId: string;
   items: CartItem[];
+  subtotal?: number;
+  shippingCost?: number;
+  shippingName?: string;
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'paid';
   paymentMethod?: string;
@@ -76,6 +89,7 @@ export interface CartItem {
   description?: string;
   imageUrl?: string;
   quantity?: number;
+  size?: string;
 }
 
 export interface Customer {
@@ -96,6 +110,16 @@ export interface UserProfile {
 }
 
 export interface Category {
+  id?: string;
+  name: string;
+  description?: string;
+  slug: string;
+  isActive: boolean;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+export interface Size {
   id?: string;
   name: string;
   description?: string;
@@ -194,80 +218,27 @@ export const updateUserRole = async (uid: string, role: 'customer' | 'admin'): P
 
 // Product functions
 export const getAllProducts = async (): Promise<Product[]> => {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'Products'));
-    const products: Product[] = [];
-    querySnapshot.forEach((doc) => {
-      products.push({ id: doc.id, ...doc.data() } as Product);
-    });
-    return products;
-  } catch (error) {
-    console.error('Error getting products:', error);
-    return [];
-  }
+  return getAllDocuments<Product>('Products');
 };
 
 export const getProductById = async (productId: string): Promise<Product | null> => {
-  try {
-    const docRef = doc(db, 'Products', productId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Product;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting product:', error);
-    return null;
-  }
+  return getDocumentById<Product>('Products', productId);
 };
 
 export const getProductsByCategory = async (category: string): Promise<Product[]> => {
-  try {
-    const q = query(collection(db, 'Products'), where('category', '==', category));
-    const querySnapshot = await getDocs(q);
-    const products: Product[] = [];
-    querySnapshot.forEach((doc) => {
-      products.push({ id: doc.id, ...doc.data() } as Product);
-    });
-    return products;
-  } catch (error) {
-    console.error('Error getting products by category:', error);
-    return [];
-  }
+  return getDocumentsWithQuery<Product>('Products', [where('category', '==', category)]);
 };
 
 export const addProduct = async (productData: Omit<Product, 'id'>): Promise<string | null> => {
-  try {
-    const docRef = await addDoc(collection(db, 'Products'), {
-      ...productData,
-      createdAt: Timestamp.now()
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error('Error adding product:', error);
-    return null;
-  }
+  return addDocument<Product>('Products', productData);
 };
 
 export const updateProduct = async (productId: string, productData: Partial<Product>): Promise<boolean> => {
-  try {
-    const docRef = doc(db, 'Products', productId);
-    await updateDoc(docRef, productData);
-    return true;
-  } catch (error) {
-    console.error('Error updating product:', error);
-    return false;
-  }
+  return updateDocument<Product>('Products', productId, productData);
 };
 
 export const deleteProduct = async (productId: string): Promise<boolean> => {
-  try {
-    await deleteDoc(doc(db, 'Products', productId));
-    return true;
-  } catch (error) {
-    console.error('Error deleting product:', error);
-    return false;
-  }
+  return deleteDocument('Products', productId);
 };
 
 // Order functions
@@ -417,17 +388,7 @@ export const updateOrderStatus = async (orderId: string, status: Order['status']
 
 // Customer functions
 export const getAllCustomers = async (): Promise<Customer[]> => {
-  try {
-    const querySnapshot = await getDocs(collection(db, 'customers'));
-    const customers: Customer[] = [];
-    querySnapshot.forEach((doc) => {
-      customers.push({ id: doc.id, ...doc.data() } as Customer);
-    });
-    return customers;
-  } catch (error) {
-    console.error('Error getting customers:', error);
-    return [];
-  }
+  return getAllDocuments<Customer>('customers');
 };
 
 // Storage functions
@@ -503,102 +464,74 @@ export const getAnalyticsData = async () => {
 
 // Category functions
 export const getAllCategories = async (): Promise<Category[]> => {
-  try {
-    const q = query(collection(db, 'categories'), orderBy('name'));
-    const querySnapshot = await getDocs(q);
-    const categories: Category[] = [];
-    querySnapshot.forEach((doc) => {
-      categories.push({ id: doc.id, ...doc.data() } as Category);
-    });
-    return categories;
-  } catch (error) {
-    console.error('Error getting categories:', error);
-    return [];
-  }
+  return getAllDocuments<Category>('categories', 'name');
 };
 
 export const getActiveCategories = async (): Promise<Category[]> => {
-  try {
-    const q = query(
-      collection(db, 'categories'),
-      where('isActive', '==', true),
-      orderBy('name')
-    );
-    const querySnapshot = await getDocs(q);
-    const categories: Category[] = [];
-    querySnapshot.forEach((doc) => {
-      categories.push({ id: doc.id, ...doc.data() } as Category);
-    });
-    return categories;
-  } catch (error) {
-    console.error('Error getting active categories:', error);
-    return [];
-  }
+  // Temporary fix: Use getAllCategories and filter client-side to avoid composite index
+  // This avoids the "index is building" error while the Firestore index is being created
+  const allCategories = await getAllCategories();
+  return allCategories.filter(category => category.isActive === true);
 };
 
 export const getCategoryById = async (categoryId: string): Promise<Category | null> => {
-  try {
-    const docRef = doc(db, 'categories', categoryId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Category;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting category:', error);
-    return null;
-  }
+  return getDocumentById<Category>('categories', categoryId);
 };
 
 export const addCategory = async (categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> => {
-  try {
-    const docRef = await addDoc(collection(db, 'categories'), {
-      ...categoryData,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    });
-    return docRef.id;
-  } catch (error) {
-    console.error('Error adding category:', error);
-    return null;
-  }
+  const dataWithTimestamps = {
+    ...categoryData,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  };
+  return addDocument<Category>('categories', dataWithTimestamps, false);
 };
 
 export const updateCategory = async (categoryId: string, categoryData: Partial<Omit<Category, 'id' | 'createdAt'>>): Promise<boolean> => {
-  try {
-    const docRef = doc(db, 'categories', categoryId);
-    await updateDoc(docRef, {
-      ...categoryData,
-      updatedAt: Timestamp.now()
-    });
-    return true;
-  } catch (error) {
-    console.error('Error updating category:', error);
-    return false;
-  }
+  return updateDocument<Category>('categories', categoryId, categoryData, true);
 };
 
 export const deleteCategory = async (categoryId: string): Promise<boolean> => {
-  try {
-    await deleteDoc(doc(db, 'categories', categoryId));
-    return true;
-  } catch (error) {
-    console.error('Error deleting category:', error);
-    return false;
-  }
+  return deleteDocument('categories', categoryId);
 };
 
 export const getCategoryBySlug = async (slug: string): Promise<Category | null> => {
-  try {
-    const q = query(collection(db, 'categories'), where('slug', '==', slug));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      return { id: doc.id, ...doc.data() } as Category;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting category by slug:', error);
-    return null;
-  }
+  return getDocumentByField<Category>('categories', 'slug', slug);
+};
+
+// Size functions
+export const getAllSizes = async (): Promise<Size[]> => {
+  return getAllDocuments<Size>('sizes', 'name');
+};
+
+export const getActiveSizes = async (): Promise<Size[]> => {
+  // Temporary fix: Use getAllSizes and filter client-side to avoid composite index
+  // This avoids the "index is building" error while the Firestore index is being created
+  const allSizes = await getAllSizes();
+  return allSizes.filter(size => size.isActive === true);
+};
+
+export const getSizeById = async (sizeId: string): Promise<Size | null> => {
+  return getDocumentById<Size>('sizes', sizeId);
+};
+
+export const addSize = async (sizeData: Omit<Size, 'id' | 'createdAt' | 'updatedAt'>): Promise<string | null> => {
+  const dataWithTimestamps = {
+    ...sizeData,
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now()
+  };
+  return addDocument<Size>('sizes', dataWithTimestamps, false);
+};
+
+export const updateSize = async (sizeId: string, sizeData: Partial<Omit<Size, 'id' | 'createdAt'>>): Promise<boolean> => {
+  return updateDocument<Size>('sizes', sizeId, sizeData, true);
+};
+
+export const deleteSize = async (sizeId: string): Promise<boolean> => {
+  return deleteDocument('sizes', sizeId);
+};
+
+export const getSizeBySlug = async (slug: string): Promise<Size | null> => {
+  return getDocumentByField<Size>('sizes', 'slug', slug);
 };

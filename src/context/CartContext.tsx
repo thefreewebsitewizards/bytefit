@@ -10,13 +10,13 @@ interface CartState {
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: CartItem }
-  | { type: 'REMOVE_ITEM'; payload: string }
+  | { type: 'REMOVE_ITEM'; payload: { id: string; size?: string } }
   | { type: 'CLEAR_CART' }
   | { type: 'LOAD_CART'; payload: CartItem[] };
 
 interface CartContextType extends CartState {
   addItem: (item: CartItem) => void;
-  removeItem: (id: string) => void;
+  removeItem: (id: string, size?: string) => void;
   clearCart: () => void;
 }
 
@@ -25,7 +25,11 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existingItem = state.items.find(item => item.id === action.payload.id);
+      // Check for existing item with same id and size (if size exists)
+      const existingItem = state.items.find(item => 
+        item.id === action.payload.id && 
+        (item.size === action.payload.size || (!item.size && !action.payload.size))
+      );
       
       if (existingItem) {
         // For artworks, don't add duplicates - just show a message
@@ -40,7 +44,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
     
     case 'REMOVE_ITEM': {
-      const newItems = state.items.filter(item => item.id !== action.payload);
+      const newItems = state.items.filter(item => {
+        if (action.payload.size) {
+          return !(item.id === action.payload.id && item.size === action.payload.size);
+        }
+        return item.id !== action.payload.id;
+      });
       const total = newItems.reduce((sum, item) => sum + item.price, 0);
       const itemCount = newItems.length;
       
@@ -100,12 +109,18 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     toast.success(`🛒 ${item.name} added to cart!`);
   };
 
-  const removeItem = (id: string) => {
-    const item = state.items.find(cartItem => cartItem.id === id);
-    dispatch({ type: 'REMOVE_ITEM', payload: id });
+  const removeItem = (id: string, size?: string) => {
+    const item = state.items.find(cartItem => {
+      if (size) {
+        return cartItem.id === id && cartItem.size === size;
+      }
+      return cartItem.id === id;
+    });
+    dispatch({ type: 'REMOVE_ITEM', payload: { id, size } });
     
     if (item) {
-      toast.info(`🗑️ ${item.name} removed from cart`);
+      const sizeText = item.size ? ` (${item.size.toUpperCase()})` : '';
+      toast.info(`🗑️ ${item.name}${sizeText} removed from cart`);
     }
   };
 

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { applyCursors } from './utils/cursors';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,13 +18,17 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ProductDetail from './pages/ProductDetail';
 import Admin from './pages/Admin';
-
+import OrderDetail from './pages/OrderDetail';
 
 import OrderHistory from './pages/OrderHistory';
 
 
 
 function App() {
+  useEffect(() => {
+    applyCursors();
+  }, []);
+
   return (
     <AuthProvider>
       <CartProvider>
@@ -33,6 +38,11 @@ function App() {
               <Route path="/admin/*" element={
                 <ProtectedRoute requireAdmin={true}>
                   <Admin />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/order/:orderId" element={
+                <ProtectedRoute requireAdmin={true}>
+                  <OrderDetail />
                 </ProtectedRoute>
               } />
               <Route path="/*" element={
@@ -68,16 +78,16 @@ function App() {
           </div>
           <ToastContainer
             position="top-right"
-            autoClose={3000}
+            autoClose={4000}
             hideProgressBar={false}
-            newestOnTop={false}
+            newestOnTop={true}
             closeOnClick
             rtl={false}
             pauseOnFocusLoss
             draggable
             pauseOnHover
             theme="light"
-            className="mt-16"
+            limit={3}
           />
         </Router>
       </CartProvider>

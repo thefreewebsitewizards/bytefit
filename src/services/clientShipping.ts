@@ -1,16 +1,24 @@
 // Client shipping management service for Stripe Connect
 
-// Firebase Functions URLs (v2 functions use individual Cloud Run URLs)
+// Firebase Functions URLs - using local emulator for development
+const API_BASE_URL = process.env.REACT_APP_FIREBASE_FUNCTIONS_URL || 'http://127.0.0.1:5003/bytefit-v2/us-central1';
+
 const FUNCTION_URLS = {
-  getShippingRates: process.env.REACT_APP_GET_SHIPPING_RATES_URL || 'https://getshippingrates-dri6av73tq-uc.a.run.app',
+  getShippingRates: `${API_BASE_URL}/getShippingRates`,
   // Add other function URLs as needed
 };
 
 export interface ShippingRate {
   id: string;
   display_name: string;
-  amount: number;
-  currency: string;
+  type: string;
+  fixed_amount?: {
+    amount: number;
+    currency: string;
+  };
+  amount?: number; // For backward compatibility
+  currency?: string; // For backward compatibility
+  tax_behavior?: string;
   delivery_estimate?: {
     minimum: { unit: string; value: number };
     maximum: { unit: string; value: number };
@@ -22,11 +30,8 @@ export interface ShippingRate {
 
 
 export interface CheckoutRatesResponse {
+  success: boolean;
   rates: ShippingRate[];
-  qualifies_for_free_shipping: boolean;
-  free_shipping_threshold: number;
-  order_total: number;
-  connected_account_id: string;
 }
 
 
@@ -36,6 +41,9 @@ export const listShippingRates = async (
   connectedAccountId: string,
   options: { limit?: number; active?: boolean } = {}
 ): Promise<{ data: ShippingRate[] }> => {
+  console.log('🚚 Fetching shipping rates from:', FUNCTION_URLS.getShippingRates);
+  console.log('📦 Connected Account ID:', connectedAccountId);
+  
   const response = await fetch(FUNCTION_URLS.getShippingRates, {
     method: 'POST',
     headers: {
@@ -47,11 +55,15 @@ export const listShippingRates = async (
     })
   });
   
+  console.log('📡 Shipping rates response status:', response.status);
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Shipping rates error response:', errorText);
     throw new Error('Failed to list shipping rates');
   }
   
   const result = await response.json();
+  console.log('✅ Shipping rates data received:', result);
   return { data: result.rates };
 };
 
@@ -86,8 +98,11 @@ export const updateShippingRate = async (
 export const getCheckoutRates = async (
   connectedAccountId: string,
   orderTotal: number,
-  freeShippingThreshold: number = 50
+  freeShippingThreshold: number = 200
 ): Promise<CheckoutRatesResponse> => {
+  console.log('🛒 Fetching checkout shipping rates from:', FUNCTION_URLS.getShippingRates);
+  console.log('💰 Order total:', orderTotal, 'Connected Account ID:', connectedAccountId);
+  
   const response = await fetch(FUNCTION_URLS.getShippingRates, {
     method: 'POST',
     headers: {
@@ -99,17 +114,24 @@ export const getCheckoutRates = async (
     })
   });
   
+  console.log('📡 Checkout rates response status:', response.status);
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('❌ Checkout rates error response:', errorText);
     throw new Error('Failed to get checkout rates');
   }
   
   const result = await response.json();
+  console.log('✅ Checkout rates data received:', result);
   return result;
 };
 
 // Helper function to format amount for display
-export const formatShippingAmount = (amount: number, currency: string = 'usd'): string => {
-  return new Intl.NumberFormat('en-US', {
+export const formatShippingAmount = (rate: ShippingRate): string => {
+  const amount = rate.fixed_amount?.amount ?? rate.amount ?? 0;
+  const currency = rate.fixed_amount?.currency ?? rate.currency ?? 'aed';
+  
+  return new Intl.NumberFormat('en-AE', {
     style: 'currency',
     currency: currency.toUpperCase()
   }).format(amount / 100);
